@@ -5,7 +5,6 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
-
 import { InjectRepository } from '@nestjs/typeorm';
 import { Contract } from './entities/contract.entity';
 import { Between, FindOperator, LessThan, MoreThan, Repository } from 'typeorm';
@@ -14,7 +13,6 @@ import { UsersService } from '../users/users.service';
 import { NotificationsMicroService } from '../../../notifications-micro/src/notifications-micro.service';
 import { CreateContractDto } from '@malaz/contracts/dtos/users/contracts/create-contract.dto';
 import { UpdateContractDto } from '@malaz/contracts/dtos/users/contracts/update-contract.dto';
-
 @Injectable()
 export class ContractsService {
   constructor(
@@ -23,7 +21,6 @@ export class ContractsService {
     private readonly userService: UsersService,
     private readonly notificationsService: NotificationsMicroService ,
   ) {}
-
   async create(userId: number, createContractDto: CreateContractDto) {
     const isActive = await this.contractRepository.findOne({
       where: {
@@ -31,16 +28,12 @@ export class ContractsService {
         expireIn: MoreThan(new Date()),
       },
     });
-
     if (isActive) {
       throw new HttpException('property not avilable now', 404);
     }
-
     const validUntil = new Date();
-
     validUntil.setMonth(validUntil.getMonth() + createContractDto.time);
-
-    const newContract = this.contractRepository.create({
+    return this.contractRepository.save({
       ...createContractDto,
       user: { id: userId },
       expireIn: validUntil,
@@ -48,22 +41,17 @@ export class ContractsService {
       agency: { id: userId },
     });
 
-    const SavedContract =await this.contractRepository.save(newContract);
-
-    await this.notificationsService.sendNotificationForAllSidesInProperties(
-      newContract,
-      'RentedSuccessfully',
-    );
+    // await this.notificationsService.sendNotificationForAllSidesInProperties(
+    //   newContract,
+    //   'RentedSuccessfully',
+    // );
   }
-
   findAll() {
     return this.contractRepository.find();
   }
-
   findOne(id: number) {
     return this.contractRepository.findOne({ where: { id } });
   }
-
   update(id: number, updateContractDto: UpdateContractDto) {
     if (updateContractDto.time) {
       const validUntil = new Date();
@@ -74,22 +62,18 @@ export class ContractsService {
       });
     }
   }
-
   remove(id: number) {
     return this.contractRepository.delete(id);
   }
-
   async getMyActiveContracts(userId: number) {
     const contracts = await this.contractRepository.find({
       where: {
         user: { id: userId },
-
         expireIn: MoreThan(new Date()),
       },
     });
     return contracts;
   }
-
   async getMyExpiredContracts(userId: number) {
     const contracts = await this.contractRepository.find({
       where: {
@@ -99,13 +83,11 @@ export class ContractsService {
     });
     return contracts;
   }
-
   async getMyContracts(userId: number) {
     const active = await this.getMyActiveContracts(userId);
     const expired = await this.getMyExpiredContracts(userId);
     return { active: active, expired: expired };
   }
-
   expiredAfterWeek() {
     const today = new Date();
     const afterWeek = new Date();
@@ -117,11 +99,9 @@ export class ContractsService {
       relations: ['property'],
     });
   }
-
   MyContractsExpiredAfterWeek(userId: number) {
     const today = new Date();
     const afterWeek = new Date();
-
     afterWeek.setDate(today.getDate() + 7);
     return this.contractRepository.find({
       where: {
@@ -131,7 +111,6 @@ export class ContractsService {
       relations: ['property'],
     });
   }
-
   getContractsNumber(userId: number) {
     return this.contractRepository.count({
       where: { property: { agency: { id: userId } } },

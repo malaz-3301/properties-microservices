@@ -13,7 +13,6 @@ import {
   UserType,
 } from '@malaz/contracts/utils/enums';
 import { ReportsMicro } from './entities/reports-micro.entity';
-
 @Injectable()
 export class ReportsMicroService {
   constructor(
@@ -24,24 +23,14 @@ export class ReportsMicroService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
   ) {}
-
   async report(createReportDto: CreateReportDto) {
     if (createReportDto.reason === Reason.Other) {
       createReportDto.reason = createReportDto.otherReason;
     }
     const report = this.reportsMicroRepository.create(createReportDto);
-    report.mult_description['ar'] = createReportDto.description;
-    report.mult_description['en'] = await this.usersGetProvider.translate(
-      Language.ENGLISH,
-      createReportDto.description,
-    );
-    report.mult_description['de'] = await this.usersGetProvider.translate(
-      Language.Germany,
-      createReportDto.description,
-    );
+    await this.createTranslatedReport(report, createReportDto);
     await this.reportsMicroRepository.save(report);
   }
-
   async getAll(payloadId: number) {
     //فرز الشكاوي للادمن و للفريق المالي
     const user = await this.usersRepository.findOneBy({ id: payloadId });
@@ -50,31 +39,7 @@ export class ReportsMicroService {
         where: { title: Not(ReportTitle.T3) },
       });
       for (let i = 0; i < reports.length; i++) {
-        reports[i].reportStatus = this.i18nService.t(
-          `transolation.${reports[i].reportStatus}`,
-          {
-            lang: user.language,
-          },
-        );
-        reports[i].title = this.i18nService.t(
-          `transolation.${reports[i].title}`,
-          {
-            lang: user.language,
-          },
-        );
-        reports[i].reason = this.i18nService.t(
-          `transolation.${reports[i].reason}`,
-          {
-            lang: user.language,
-          },
-        );
-        if (user.language == Language.ARABIC) {
-          reports[i]['description'] = reports[i].mult_description['ar'];
-        } else if (user.language == Language.ENGLISH) {
-          reports[i]['description'] = reports[i].mult_description['en'];
-        } else {
-          reports[i]['description'] = reports[i].mult_description['de'];
-        }
+        await this.getTranslatedReport(reports[i], user.language);
       }
       return reports;
     } else if (user?.userType === UserType.Financial) {
@@ -82,36 +47,11 @@ export class ReportsMicroService {
         where: { title: ReportTitle.T3 },
       });
       for (let i = 0; i < reports.length; i++) {
-        reports[i].reportStatus = this.i18nService.t(
-          `transolation.${reports[i].reportStatus}`,
-          {
-            lang: user.language,
-          },
-        );
-        reports[i].title = this.i18nService.t(
-          `transolation.${reports[i].title}`,
-          {
-            lang: user.language,
-          },
-        );
-        reports[i].reason = this.i18nService.t(
-          `transolation.${reports[i].reason}`,
-          {
-            lang: user.language,
-          },
-        );
-        if (user.language == Language.ARABIC) {
-          reports[i]['description'] = reports[i].mult_description['ar'];
-        } else if (user.language == Language.ENGLISH) {
-          reports[i]['description'] = reports[i].mult_description['en'];
-        } else {
-          reports[i]['description'] = reports[i].mult_description['de'];
-        }
+        await this.getTranslatedReport(reports[i], user.language);
       }
       return reports;
     }
   }
-
   async getAllPending(payloadId: number) {
     const user = await this.usersRepository.findOneBy({ id: payloadId });
     if (user?.userType === UserType.SUPER_ADMIN) {
@@ -122,31 +62,7 @@ export class ReportsMicroService {
         },
       });
       for (let i = 0; i < reports.length; i++) {
-        reports[i].reportStatus = this.i18nService.t(
-          `transolation.${reports[i].reportStatus}`,
-          {
-            lang: user.language,
-          },
-        );
-        reports[i].title = this.i18nService.t(
-          `transolation.${reports[i].title}`,
-          {
-            lang: user.language,
-          },
-        );
-        reports[i].reason = this.i18nService.t(
-          `transolation.${reports[i].reason}`,
-          {
-            lang: user.language,
-          },
-        );
-        if (user.language == Language.ARABIC) {
-          reports[i]['description'] = reports[i].mult_description['ar'];
-        } else if (user.language == Language.ENGLISH) {
-          reports[i]['description'] = reports[i].mult_description['en'];
-        } else {
-          reports[i]['description'] = reports[i].mult_description['de'];
-        }
+        await this.getTranslatedReport(reports[i], user.language);
       }
       return reports;
     } else if (user?.userType === UserType.Financial) {
@@ -154,71 +70,46 @@ export class ReportsMicroService {
         where: { title: ReportTitle.T3, reportStatus: ReportStatus.PENDING },
       });
       for (let i = 0; i < reports.length; i++) {
-        reports[i].reportStatus = this.i18nService.t(
-          `transolation.${reports[i].reportStatus}`,
-          {
-            lang: user.language,
-          },
-        );
-        reports[i].title = this.i18nService.t(
-          `transolation.${reports[i].title}`,
-          {
-            lang: user.language,
-          },
-        );
-        reports[i].reason = this.i18nService.t(
-          `transolation.${reports[i].reason}`,
-          {
-            lang: user.language,
-          },
-        );
-        if (user.language == Language.ARABIC) {
-          reports[i]['description'] = reports[i].mult_description['ar'];
-        } else if (user.language == Language.ENGLISH) {
-          reports[i]['description'] = reports[i].mult_description['en'];
-        } else {
-          reports[i]['description'] = reports[i].mult_description['de'];
-        }
+        await this.getTranslatedReport(reports[i], user.language);
       }
       return reports;
     }
   }
-
   async getOne(reportId: number, userId: number) {
     const user = await this.usersGetProvider.findById(userId);
-    const report = await this.reportsMicroRepository.findOneBy({
-      id: reportId,
-    });
+    const report = await this.reportsMicroRepository.findOneBy({ id: reportId });
     if (!report) {
       throw new NotFoundException();
     }
-
-    report.reportStatus = this.i18nService.t(
-      `transolation.${report.reportStatus}`,
-      {
-        lang: user.language,
-      },
-    );
-    report.title = this.i18nService.t(`transolation.${report.title}`, {
-      lang: user.language,
-    });
-    report.reason = this.i18nService.t(`transolation.${report.reason}`, {
-      lang: user.language,
-    });
-    if (user.language == Language.ARABIC) {
-      report['description'] = report.mult_description['ar'];
-    } else if (user.language == Language.ENGLISH) {
-      report['description'] = report.mult_description['en'];
-    } else {
-      report['description'] = report.mult_description['de'];
-    }
-
+    await this.getTranslatedReport(report, user.language);
     return report;
   }
-
   hide(reportId: number) {
     return this.reportsMicroRepository.update(reportId, {
       reportStatus: ReportStatus.Rejected,
     });
+  }
+  getTranslatedReport(report: ReportsMicro, language: Language) {
+    if (language == Language.ARABIC) {
+      report['description'] = report.mult_description['ar'];
+    } else if (language == Language.ENGLISH) {
+      report['description'] = report.mult_description['en'];
+    } else {
+      report['description'] = report.mult_description['de'];
+    }
+  }
+  async createTranslatedReport(
+    report: ReportsMicro,
+    createReportDto: CreateReportDto,
+  ) {
+    report.mult_description = { ar: createReportDto.description };
+    report.mult_description['en'] = await this.usersGetProvider.translate(
+      Language.ENGLISH,
+      createReportDto.description,
+    );
+    report.mult_description['de'] = await this.usersGetProvider.translate(
+      Language.Germany,
+      createReportDto.description,
+    );
   }
 }

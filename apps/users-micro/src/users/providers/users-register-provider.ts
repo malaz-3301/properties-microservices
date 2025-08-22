@@ -8,7 +8,6 @@ import { ClientProxy, RmqRecordBuilder, RpcException } from '@nestjs/microservic
 import {  I18nService } from 'nestjs-i18n';
 import { UserType } from '@malaz/contracts/utils/enums';
 import { RegisterUserDto } from '@malaz/contracts/dtos/users/users/register-user.dto';
-
 @Injectable()
 export class UsersRegisterProvider {
   constructor(
@@ -20,23 +19,19 @@ export class UsersRegisterProvider {
     @Inject('GEO_SERVICE') private readonly client1: ClientProxy,
     @Inject('SMS_SERVICE') private readonly client2: ClientProxy,
   ) {}
-
   /**
    *
    * @param registerUserDto
    */
   async register(registerUserDto: RegisterUserDto) {
-    const { phone, username,password, pointsDto } = registerUserDto;
-    if (await this.usersRepository.findOneBy({ phone: phone }) ||await this.usersRepository.findOneBy({ username: username })) {
-      throw new RpcException({ statusCode: 409, message: 'User already exists' });
+    const { phone, password, pointsDto } = registerUserDto;
+    if (await this.usersRepository.findOneBy({ phone: phone })) {
+      throw new ConflictException('User already exists');
     }
-    console.log("nnns");
-
     registerUserDto.password = await this.usersOtpProvider.hashCode(password);
     //OTP
     const code = Math.floor(10000 + Math.random() * 90000).toString();
     const otpCode = await this.usersOtpProvider.hashCode(code);
-
     //DT
     const result = await this.dataSource.transaction(async (manger) => {
       const user = manger.create(User, {
@@ -60,8 +55,7 @@ export class UsersRegisterProvider {
           .build(),
       );
       console.log(code);
-
-      const key = this.i18n.t('transolation.Key')
+      const key = await this.i18n.t('transolation.Key')
       this.client2.emit(
         'create_user.sms',
         new RmqRecordBuilder({
@@ -78,7 +72,6 @@ export class UsersRegisterProvider {
       userId: result.id,
     };
   }
-
   async register_back_users() {
     await this.dataSource.query(`
     TRUNCATE TABLE "users" RESTART IDENTITY CASCADE;
