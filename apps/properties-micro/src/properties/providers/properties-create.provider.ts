@@ -2,35 +2,42 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Property } from '../entities/property.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { PropertiesGetProvider } from './properties-get.provider';
-import { GeolocationService } from '../../geolocation/geolocation.service';
 import { PropertiesVoSuViProvider } from './properties-vo-su-vi.provider';
+
 import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
 import * as console from 'node:console';
 import { AgenciesVoViProvider } from '../../../../users-micro/src/users/providers/agencies-vo-vi.provider';
-import { UsersGetProvider } from '../../../../users-micro/src/users/providers/users-get.provider';
 import { CreatePropertyDto } from '@malaz/contracts/dtos/properties/properties/create-property.dto';
 import {
   Language,
   PropertyStatus,
   UserType,
 } from '@malaz/contracts/utils/enums';
+import { lastValueFrom, retry, timeout } from 'rxjs';
+import { UsersGetProvider } from '../../../../users-micro/src/users/providers/users-get.provider';
+
+
 @Injectable()
 export class PropertiesCreateProvider {
   constructor(
     @InjectRepository(Property)
     private propertyRepository: Repository<Property>,
-    private usersGetProvider: UsersGetProvider,
-    private propertiesGetProvider: PropertiesGetProvider,
-    private geolocationService: GeolocationService,
     private readonly propertiesVoViProvider: PropertiesVoSuViProvider,
     private readonly agenciesVoViProvider: AgenciesVoViProvider,
+    private readonly usersGetProvider: UsersGetProvider,
+    @Inject('USERS_SERVICE')
+    private readonly usersClient: ClientProxy,
     private dataSource: DataSource,
-    @Inject('GEO_SERVICE') private readonly client: ClientProxy,
+    @Inject('GEO_SERVICE') private readonly geoClient: ClientProxy,
   ) {}
+
   //create from other
   async create(createPropertyDto: CreatePropertyDto, userId: number) {
-    const user = await this.usersGetProvider.findById(userId);
+    const user = await lastValueFrom(
+      this.usersClient
+        .send('users.findById', { id: userId })
+        .pipe(retry(2), timeout(5000)),
+    );
     //اذا مكتب لازم يشترك
     if (user.userType === UserType.AGENCY) {
       //عدد كم عقار له واختار المحدودية
@@ -47,11 +54,19 @@ export class PropertiesCreateProvider {
       }
     }
     console.log('planId : ' + user.plan?.id);
-    const agency = await this.usersGetProvider.findById(
-      createPropertyDto.agencyId,
+
+    const agency = await lastValueFrom(
+      this.usersClient
+        .send('users.findById', { id: createPropertyDto.agencyId })
+        .pipe(retry(2), timeout(5000)),
     );
-    const agencyInfo = await this.usersGetProvider.getOneAgencyInfo(
-      createPropertyDto.agencyId,
+
+    const agencyInfo = await lastValueFrom(
+      this.usersClient
+        .send('agencies.getOneAgencyInfo', {
+          agencyId: createPropertyDto.agencyId,
+        })
+        .pipe(retry(2), timeout(5000)),
     );
     const { pointsDto } = createPropertyDto;
     /*    const location =
@@ -81,24 +96,21 @@ export class PropertiesCreateProvider {
       await this.createTranslatedProperty(newProperty, createPropertyDto);
       await manger.save(Property, newProperty);
       console.log('ddddddddddddddddddddddddddddddd');
+
       await this.propertiesVoViProvider.computeSuitabilityRatio(
         newProperty,
         manger,
       );
-      await this.agenciesVoViProvider.chanePropertiesNum(agency.id, 1, manger);
+      await this.agenciesVoViProvider.chanePropertiesNum(agency.id, 1);
       return newProperty;
     });
     //que
-    this.client.emit(
-      'create_property.geo',
-      new RmqRecordBuilder({
-        proId: result.id,
-        lat: pointsDto.lat,
-        lon: pointsDto.lon,
-      })
-        .setOptions({ persistent: true })
-        .build(),
-    );
+    this.geoClient.emit('create_property.geo', {
+      proId: result.id,
+      lat: pointsDto.lat,
+      lon: pointsDto.lon,
+    });
+
     return result.id;
   }
   async createTranslatedProperty(

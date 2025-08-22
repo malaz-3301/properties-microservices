@@ -1,13 +1,18 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { User } from '../entities/user.entity';
 import { OtpEntity } from '../entities/otp.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { UsersOtpProvider } from './users-otp.provider';
-import { ClientProxy, RmqRecordBuilder, RpcException } from '@nestjs/microservices';
-import {  I18nService } from 'nestjs-i18n';
+import {
+  ClientProxy,
+  RmqRecordBuilder,
+  RpcException,
+} from '@nestjs/microservices';
+import { I18nService } from 'nestjs-i18n';
 import { UserType } from '@malaz/contracts/utils/enums';
 import { RegisterUserDto } from '@malaz/contracts/dtos/users/users/register-user.dto';
+
 @Injectable()
 export class UsersRegisterProvider {
   constructor(
@@ -16,22 +21,32 @@ export class UsersRegisterProvider {
     private readonly i18n: I18nService,
     private readonly usersOtpProvider: UsersOtpProvider,
     private dataSource: DataSource,
-    @Inject('GEO_SERVICE') private readonly client1: ClientProxy,
-    @Inject('SMS_SERVICE') private readonly client2: ClientProxy,
+    @Inject('GEO_SERVICE') private readonly geoClient: ClientProxy,
+    @Inject('SMS_SERVICE') private readonly smsClient: ClientProxy,
   ) {}
+
   /**
    *
    * @param registerUserDto
    */
   async register(registerUserDto: RegisterUserDto) {
-    const { phone, password, pointsDto } = registerUserDto;
-    if (await this.usersRepository.findOneBy({ phone: phone })) {
-      throw new ConflictException('User already exists');
+    const { phone, username, password, pointsDto } = registerUserDto;
+    if (
+      (await this.usersRepository.findOneBy({ phone: phone })) ||
+      (await this.usersRepository.findOneBy({ username: username }))
+    ) {
+      throw new RpcException({
+        statusCode: HttpStatus.CONFLICT,
+        message: 'User already exists',
+      });
     }
+    console.log("nnns");
+
     registerUserDto.password = await this.usersOtpProvider.hashCode(password);
     //OTP
     const code = Math.floor(10000 + Math.random() * 90000).toString();
     const otpCode = await this.usersOtpProvider.hashCode(code);
+
     //DT
     const result = await this.dataSource.transaction(async (manger) => {
       const user = manger.create(User, {
@@ -44,7 +59,7 @@ export class UsersRegisterProvider {
         user: { id: user.id },
       });
       //que
-      this.client1.emit(
+      this.geoClient.emit(
         'create_user.geo',
         new RmqRecordBuilder({
           userId: user.id,
@@ -55,16 +70,12 @@ export class UsersRegisterProvider {
           .build(),
       );
       console.log(code);
-      const key = await this.i18n.t('transolation.Key')
-      this.client2.emit(
-        'create_user.sms',
-        new RmqRecordBuilder({
-          phone: user.phone,
-          message: `${key}${code}`,
-        })
-          .setOptions({ persistent: true })
-          .build(),
-      );
+
+      const key = this.i18n.t('transolation.Key');
+      this.smsClient.emit('create_user.sms', {
+        phone: user.phone,
+        message: `${key}${code}`,
+      });
       return user;
     });
     return {

@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -7,9 +8,8 @@ import * as bcrypt from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Property } from '../entities/property.entity';
 import { Repository } from 'typeorm';
-import { PropertiesService } from '../properties.service';
 import { PropertiesGetProvider } from './properties-get.provider';
-import { AgenciesVoViProvider } from '../../../../users-micro/src/users/providers/agencies-vo-vi.provider';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class PropertiesDelProvider {
@@ -17,7 +17,8 @@ export class PropertiesDelProvider {
     @InjectRepository(Property)
     private propertyRepository: Repository<Property>,
     private readonly propertiesGetProvider: PropertiesGetProvider,
-    private readonly agenciesVoViProvider: AgenciesVoViProvider,
+    @Inject('USERS_SERVICE')
+    private readonly usersClient: ClientProxy,
   ) {}
 
   async deleteOwnerPro(proId: number, ownerId: number, password: string) {
@@ -34,7 +35,10 @@ export class PropertiesDelProvider {
     if (!isPass) {
       throw new UnauthorizedException('Password is incorrect');
     }
-    await this.agenciesVoViProvider.chanePropertiesNum(ownerId, -1);
+    this.usersClient.emit('analytics.chanePropertiesNum', {
+      ownerId,
+      value: -1,
+    });
     return this.propertyRepository.delete({ id: proId });
   }
 

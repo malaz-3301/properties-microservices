@@ -1,15 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EntityManager, Repository } from 'typeorm';
-import { User } from '../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Statistics } from '../entities/statistics.entity';
-import { newMangleNameCache } from '@swc/core/binding';
 
 //increment depends on value
 @Injectable()
 export class AgenciesVoViProvider {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Statistics)
     private readonly statsRepository: Repository<Statistics>,
   ) {}

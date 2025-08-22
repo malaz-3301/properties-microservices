@@ -14,24 +14,20 @@ import {
   LessThanOrEqual,
   Like,
   MoreThanOrEqual,
-  Raw,
   Repository,
 } from 'typeorm';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { FavoriteService } from '../../favorite/favorite.service';
 import { VotesService } from '../../votes/votes.service';
-import { json } from 'express';
 import { createHash } from 'crypto';
-import { GeolocationService } from '../../geolocation/geolocation.service';
 import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
-import { ConfigService } from '@nestjs/config';
-import { I18n, I18nContext, I18nService } from 'nestjs-i18n';
+import { firstValueFrom, lastValueFrom, retry, timeout } from 'rxjs';
+import { I18nService } from 'nestjs-i18n';
 import { GeoEnum, Language, UserType } from '@malaz/contracts/utils/enums';
-import { UsersService } from '../../../../users-micro/src/users/users.service';
 import { GeoProDto } from '@malaz/contracts/dtos/properties/properties/geo-pro.dto';
 import { NearProDto } from '@malaz/contracts/dtos/properties/properties/near-pro.dto';
 import { FilterPropertyDto } from '@malaz/contracts/dtos/properties/properties/filter-property.dto';
+
 @Injectable()
 export class PropertiesGetProvider {
   constructor(
@@ -41,26 +37,30 @@ export class PropertiesGetProvider {
     private readonly favoriteService: FavoriteService,
     @Inject(forwardRef(() => VotesService)) //cycle conflict
     private readonly votesService: VotesService,
-    private readonly geolocationService: GeolocationService,
     private dataSource: DataSource,
-    @Inject('GEO_SERVICE') private readonly client: ClientProxy,
-    private usersService: UsersService,
+    @Inject('GEO_SERVICE') private readonly geoClient: ClientProxy,
+    @Inject('USERS_SERVICE')
+    private readonly usersClient: ClientProxy,
     private readonly i18n: I18nService,
   ) {}
+
   async getProByUser(proId: number, userId: number, role: UserType) {
     const property = await this.propertyRepository.findOne({
       where: { id: proId, [role]: { id: userId } },
     });
+
     if (!property) {
       throw new NotFoundException('property not found!');
     }
-    const user = await this.usersService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException();
-    }
+    const user = await lastValueFrom(
+      this.usersClient
+        .send('users.findById', { id: userId })
+        .pipe(retry(2), timeout(5000)),
+    );
     this.getTranslatedProperty(property, user.language);
     return property;
   }
+
   async getUserIdByProId(proId: number) {
     const property = await this.propertyRepository.findOne({
       where: { id: proId },
@@ -72,6 +72,7 @@ export class PropertiesGetProvider {
     }
     return property;
   }
+
   async findById(proId: number) {
     const property = await this.propertyRepository.findOne({
       where: { id: proId },
@@ -80,11 +81,13 @@ export class PropertiesGetProvider {
         agency: { id: true, username: true },
       },
     });
+
     if (!property) {
       throw new NotFoundException('Property not found');
     }
     return property;
   }
+
   //جلب العقار مع تفاعلاتي عليه
   async findById_ACT(proId: number, userId: number) {
     const property = await this.propertyRepository.findOne({
@@ -94,14 +97,16 @@ export class PropertiesGetProvider {
         agency: { id: true, username: true },
       },
     });
+
     console.log(property?.panoramaImages);
     if (!property) {
       throw new NotFoundException('Property not found');
     }
-    const user = await this.usersService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException();
-    }
+    const user = await lastValueFrom(
+      this.usersClient
+        .send('users.findById', { id: userId })
+        .pipe(retry(2), timeout(5000)),
+    );
     this.getTranslatedProperty(property, user.language);
     console.log(property.propertyType);
     const isFavorite = await this.favoriteService.isFavorite(userId, proId);
@@ -118,6 +123,7 @@ export class PropertiesGetProvider {
             url,
           }),
         );*/
+
     return {
       ...propertyE,
       panoramaImages: panoramaImagesParse,
@@ -125,10 +131,12 @@ export class PropertiesGetProvider {
       voteValue,
     };
   }
+
   async shortHash(obj: object) {
     //ينشئ كائن تجزئة باستخدام خوارزمية MD5
     return createHash('md5').update(JSON.stringify(obj)).digest('hex');
   }
+
   async getProByGeo(geoProDto: GeoProDto, userId: number) {
     const level = geoProDto.geoLevel;
     /*    const location =
@@ -138,17 +146,19 @@ export class PropertiesGetProvider {
           )) || {};*/
     console.log('helooooooooooo');
     const location = await firstValueFrom(
-      this.client.send('get_property.geo', {
+      this.geoClient.send('get_property.geo', {
         lat: geoProDto.lat,
         lon: geoProDto.lon,
       }),
     );
+
     //نزيل بعدين طلاع
     const GeoArray = Object.values(GeoEnum); //عملها مصفوفة
     console.log(location);
     const key = GeoArray.indexOf(level);
     let apiGeoLevel;
     let apiGeoValue;
+
     if (location[level] != null && location[level] != 'unnamed road') {
       apiGeoLevel = level;
       apiGeoValue = location[`${GeoArray[key]}`];
@@ -172,6 +182,7 @@ export class PropertiesGetProvider {
       console.log('break');
       if (apiGeoValue == null) {
         i = key + 2;
+
         while (i <= 4) {
           if (
             location[GeoArray[i]] != 'unnamed road' &&
@@ -192,10 +203,11 @@ export class PropertiesGetProvider {
     const properties = await this.propertyRepository.find({
       where: { location: { [apiGeoLevel]: apiGeoValue } },
     });
-    const user = await this.usersService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException();
-    }
+    const user = await lastValueFrom(
+      this.usersClient
+        .send('users.findById', { id: userId })
+        .pipe(retry(2), timeout(5000)),
+    );
     for (let i = 0; i < properties.length; i++) {
       this.getTranslatedProperty(properties[i], user.language);
     }
@@ -219,14 +231,11 @@ export class PropertiesGetProvider {
       `,
       [nearProDto.lon, nearProDto.lat, nearProDto.distanceKm],
     );
-    const user = await this.usersService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException();
-    }
-    this.getTranslatedProperty(result, user.language);
     return result;
   }
+
   ////////////////
+
   async getAll(
     query: FilterPropertyDto,
     userId?: number,
@@ -259,7 +268,9 @@ export class PropertiesGetProvider {
     //   console.log('This is Cache data');
     //   return cacheData;
     // }
+
     const filter: FindOptionsWhere<Property> | undefined = {};
+
     filter.price = this.rangeConditions(minPrice, maxPrice);
     filter.area = this.rangeConditions(minArea, maxArea);
     if (status != null) filter.status = status;
@@ -272,6 +283,7 @@ export class PropertiesGetProvider {
     if (isFloor != null) filter.isFloor = isFloor;
     if (agencyId != null) filter.agency = { id: agencyId };
     if (ownerId != null) filter.owner = { id: ownerId };
+
     let where: FindOptionsWhere<Property>[];
     if (word) {
       where = [
@@ -324,12 +336,18 @@ export class PropertiesGetProvider {
           lon: true,
           lat: true,
         },
+
         agency: { username: true },
       },
+
       order,
     });
     if (userId) {
-      const user = await this.usersService.getUserById(userId);
+      const user = await lastValueFrom(
+        this.usersClient
+          .send('users.findById', { id: userId })
+          .pipe(retry(2), timeout(5000)),
+      );
       if (!user) {
         throw new NotFoundException();
       }
@@ -361,6 +379,7 @@ export class PropertiesGetProvider {
       take: limit,
     });
   }
+
   getOwnerAndAgency(Id: number) {
     return this.propertyRepository.findOne({
       where: { id: Id },

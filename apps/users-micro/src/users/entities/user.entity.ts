@@ -24,7 +24,7 @@ import { Audit } from '../../audit/entities/audit.entity';
 import { View } from 'apps/properties-micro/src/views/entities/view.entity';
 import { Favorite } from '../../../../properties-micro/src/favorite/entities/favorite.entity';
 import { NotificationMicro } from '../../../../notifications-micro/src/entities/notification-micro.entity';
-import { Location } from '../../../../properties-micro/src/geolocation/entities/location.embedded';
+import { Location } from '../../geolocation/entities/location.embedded';
 import { Plan } from '../../../../commerce-micro/src/plans/entities/plan.entity';
 import { Order } from '../../../../commerce-micro/src/orders/entities/order.entity';
 

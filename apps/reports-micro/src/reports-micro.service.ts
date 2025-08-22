@@ -1,10 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 import { I18nService } from 'nestjs-i18n';
 import { CreateReportDto } from '@malaz/contracts/dtos/reports/create-report.dto';
 import { UsersGetProvider } from '../../users-micro/src/users/providers/users-get.provider';
-import { User } from '../../users-micro/src/users/entities/user.entity';
 import {
   Language,
   Reason,
@@ -13,15 +12,19 @@ import {
   UserType,
 } from '@malaz/contracts/utils/enums';
 import { ReportsMicro } from './entities/reports-micro.entity';
+import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom, retry, timeout } from 'rxjs';
+
 @Injectable()
 export class ReportsMicroService {
   constructor(
     @InjectRepository(ReportsMicro)
     private readonly reportsMicroRepository: Repository<ReportsMicro>,
-    private usersGetProvider: UsersGetProvider,
+    private usersGetProvider: UsersGetProvider, //محمد شيل هي
+    @Inject('USERS_SERVICE')
+    private readonly usersClient: ClientProxy,
     private i18nService: I18nService,
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
+
   ) {}
   async report(createReportDto: CreateReportDto) {
     if (createReportDto.reason === Reason.Other) {
@@ -31,9 +34,14 @@ export class ReportsMicroService {
     await this.createTranslatedReport(report, createReportDto);
     await this.reportsMicroRepository.save(report);
   }
+
   async getAll(payloadId: number) {
     //فرز الشكاوي للادمن و للفريق المالي
-    const user = await this.usersRepository.findOneBy({ id: payloadId });
+    const user = await lastValueFrom(
+      this.usersClient
+        .send('users.findById', { id: payloadId })
+        .pipe(retry(2), timeout(5000)),
+    );
     if (user?.userType === UserType.SUPER_ADMIN) {
       const reports = await this.reportsMicroRepository.find({
         where: { title: Not(ReportTitle.T3) },
@@ -52,8 +60,14 @@ export class ReportsMicroService {
       return reports;
     }
   }
+
   async getAllPending(payloadId: number) {
-    const user = await this.usersRepository.findOneBy({ id: payloadId });
+    const user = await lastValueFrom(
+      this.usersClient
+        .send('users.findById', { id: payloadId })
+        .pipe(retry(2), timeout(5000)),
+    );
+
     if (user?.userType === UserType.SUPER_ADMIN) {
       const reports = await this.reportsMicroRepository.find({
         where: {
@@ -76,7 +90,11 @@ export class ReportsMicroService {
     }
   }
   async getOne(reportId: number, userId: number) {
-    const user = await this.usersGetProvider.findById(userId);
+    const user = await lastValueFrom(
+      this.usersClient
+        .send('users.findById', { id: userId })
+        .pipe(retry(2), timeout(5000)),
+    );
     const report = await this.reportsMicroRepository.findOneBy({ id: reportId });
     if (!report) {
       throw new NotFoundException();
@@ -84,6 +102,7 @@ export class ReportsMicroService {
     await this.getTranslatedReport(report, user.language);
     return report;
   }
+
   hide(reportId: number) {
     return this.reportsMicroRepository.update(reportId, {
       reportStatus: ReportStatus.Rejected,

@@ -10,6 +10,7 @@ import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module'
 import { UsersMicroModule } from '../../users-micro/src/users-micro.module';
 import { UsersModule } from '../../users-micro/src/users/users.module';
 import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module';
+import { FromRpcToAuthModule } from './a-from-rpc-to-auth/from-rpc-to-auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module'
     JwtConfigModule,
     ConfigSetModule,
     I18nSetModule,
+    FromRpcToAuthModule,
   ],
   controllers: [AuthMicroController],
   providers: [AuthMicroService],

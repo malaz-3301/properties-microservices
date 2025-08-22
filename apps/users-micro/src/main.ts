@@ -3,7 +3,11 @@ import { UsersMicroModule } from './users-micro.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(UsersMicroModule, {
+  const app = await NestFactory.create(UsersMicroModule, {
+    logger: false,
+  });
+
+  app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
       urls: ['amqp://localhost:5672'],
@@ -13,7 +17,20 @@ async function bootstrap() {
       },
     },
   });
-  await app.listen();
-  console.log('Users microservice is listening')
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://localhost:5672'],
+      queue: 'sms_queue',
+      queueOptions: { durable: true },
+      noAck: false,
+    },
+  });
+
+  await app.startAllMicroservices();
+
+  console.log('Users microservice is listening');
 }
+
 bootstrap();

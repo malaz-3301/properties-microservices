@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
   ParseIntPipe,
   Patch,
@@ -14,10 +15,14 @@ import { CurrentUser } from '@malaz/contracts/decorators/current-user.decorator'
 import { JwtPayloadType } from '@malaz/contracts/utils/constants';
 import { UpdateNotificationDto } from '@malaz/contracts/dtos/notification/update-notification.dto';
 import { CreateNotificationDto } from '@malaz/contracts/dtos/notification/create-notification.dto';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Controller('notifications')
 export class ToNotificationsController {
-  constructor() {}
+  constructor(
+    @Inject('NOTIFICATIONS_SERVICE')
+    private readonly notificationsClient: ClientProxy,
+  ) {} // أي اسم client
 
   @Post('mark_as_read')
   @UseGuards(AuthGuard)

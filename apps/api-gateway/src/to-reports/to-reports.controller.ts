@@ -24,7 +24,7 @@ import { JwtPayloadType } from '@malaz/contracts/utils/constants';
 @Controller('reports')
 export class ToReportsController {
   constructor(
-    @Inject('REPORTS_SERVICES')
+    @Inject('REPORTS_SERVICE')
     private readonly reportsClient: ClientProxy,
   ) {}
 

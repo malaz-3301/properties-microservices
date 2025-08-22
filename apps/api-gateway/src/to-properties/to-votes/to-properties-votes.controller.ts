@@ -21,7 +21,7 @@ import { retry, timeout } from 'rxjs/operators';
 @Controller('votes')
 export class ToPropertiesVotesController {
   constructor(
-    @Inject('PROPERTIES_SERVICES')
+    @Inject('PROPERTIES_SERVICE')
     private readonly propertiesClient: ClientProxy,
   ) {}
 

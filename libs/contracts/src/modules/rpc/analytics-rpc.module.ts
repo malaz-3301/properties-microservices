@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 
+@Global()
 @Module({
   imports: [
     ClientsModule.register([
@@ -11,7 +12,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           urls: ['amqp://localhost:5672'],
           queue: 'analytics_queue',
           queueOptions: {
-            durable: true
+            durable: true,
           },
         },
       },
@@ -19,4 +20,4 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
   ],
   exports: [ClientsModule],
 })
-export class AnalyticsRpcModule{}
+export class AnalyticsRpcModule {}

@@ -16,7 +16,7 @@ import { retry, timeout } from 'rxjs/operators';
 @Controller('favorite')
 export class ToPropertiesFavoriteController {
   constructor(
-    @Inject('PROPERTIES_SERVICES')
+    @Inject('PROPERTIES_SERVICE')
     private readonly propertiesClient: ClientProxy,
   ) {}
 

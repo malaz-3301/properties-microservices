@@ -1,17 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 
+@Global()
 @Module({
   imports: [
     ClientsModule.register([
       {
-        name: 'COMMERCE_SERVICES',
+        name: 'COMMERCE_SERVICE',
         transport: Transport.RMQ,
         options: {
           urls: ['amqp://localhost:5672'],
           queue: 'commerce_queue',
           queueOptions: {
-            durable: true
+            durable: true,
           },
         },
       },
@@ -19,4 +20,4 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
   ],
   exports: [ClientsModule],
 })
-export class CommerceRpcModule{}
+export class CommerceRpcModule {}

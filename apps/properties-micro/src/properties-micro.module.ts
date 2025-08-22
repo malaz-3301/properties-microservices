@@ -4,30 +4,27 @@ import { PropertiesModule } from './properties/properties.module';
 import { FavoriteModule } from './favorite/favorite.module';
 import { VotesModule } from './votes/votes.module';
 import { ViewsModule } from './views/views.module';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AcceptLanguageResolver, I18nModule } from 'nestjs-i18n';
-import * as path from 'path'; // يجب أن يكون هكذا
 import { GlobalCacheModule } from '@malaz/contracts/modules/set/cache-global.module';
 import { I18nSetModule } from '@malaz/contracts/modules/set/i18n-set.module';
-
+import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module';
+import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module';
+import { GeoQueRpcModule } from '@malaz/contracts/modules/rpc/geo-que-rpc.module';
+import { ProGeoModule } from './pro-geo/pro-geo.module';
+import { FromRpcToPropertiesModule } from './a-from-rpc-to-properties/from-rpc-to-properties.module';
 
 @Module({
-  imports : [PropertiesModule,FavoriteModule,ViewsModule,VotesModule,JwtModule.registerAsync({
-    inject: [ConfigService],
-    useFactory: (config: ConfigService) => {
-      return {
-        global: true,
-        secret: config.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: config.get<string>('JWT_EXPIRES_IN') },
-      };
-    },
-
-  })   , ConfigModule.forRoot({
-    isGlobal: true,
-    envFilePath: `.env`,
-  }),  I18nSetModule,GlobalCacheModule],
-
-
+  imports: [
+    ProGeoModule,
+    GeoQueRpcModule,
+    PropertiesModule,
+    FavoriteModule,
+    ViewsModule,
+    VotesModule,
+    JwtConfigModule,
+    ConfigSetModule,
+    I18nSetModule,
+    GlobalCacheModule,
+    FromRpcToPropertiesModule,
+  ],
 })
 export class PropertiesMicroModule {}

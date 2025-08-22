@@ -5,13 +5,13 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
   imports: [
     ClientsModule.register([
       {
-        name: 'REPORTS_SERVICES',
+        name: 'REPORTS_SERVICE',
         transport: Transport.RMQ,
         options: {
           urls: ['amqp://localhost:5672'],
           queue: 'reports_queue',
           queueOptions: {
-            durable: true
+            durable: true,
           },
         },
       },
@@ -19,4 +19,4 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
   ],
   exports: [ClientsModule],
 })
-export class ReportsRpcModule{}
+export class ReportsRpcModule {}

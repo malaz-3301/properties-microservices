@@ -22,7 +22,7 @@ import { catchError, retry, timeout } from 'rxjs';
 @Controller('plans')
 export class ToCommercePlansController {
   constructor(
-    @Inject('COMMERCE_SERVICES') private readonly commerceClient: ClientProxy,
+    @Inject('COMMERCE_SERVICE') private readonly commerceClient: ClientProxy,
   ) {} // أي اسم client
 
   @Post()
@@ -40,13 +40,9 @@ export class ToCommercePlansController {
 
   @Post('back')
   create_back_planes() {
-    return this.commerceClient.send('commerce.createBackPlanes', {}).pipe(
-      retry(2),
-      timeout(5000),
-      catchError((err) => {
-        throw err;
-      }),
-    );
+    return this.commerceClient
+      .send('plans.createBack', {})
+      .pipe(retry(2), timeout(5000));
   }
 
   @Patch(':id')

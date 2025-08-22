@@ -22,7 +22,7 @@ import { catchError, retry, timeout } from 'rxjs';
 @Controller('orders')
 export class ToCommerceOrdersController {
   constructor(
-    @Inject('COMMERCE_SERVICES') private readonly commerceClient: ClientProxy,
+    @Inject('COMMERCE_SERVICE') private readonly commerceClient: ClientProxy,
   ) {} // أي اسم client
 
   @Post()

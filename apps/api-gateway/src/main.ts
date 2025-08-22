@@ -5,37 +5,38 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as express from 'express';
 import helmet from 'helmet';
 import { LoggerInterceptor } from '@malaz/contracts/utils/interceptors/logger.interceptor';
-import { RpcExceptionFilter} from '@malaz/contracts/decorators/exc-filter';
+import { ExceptionFilter } from '@malaz/contracts/decorators/exc-filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
   // Add Global Filter in main.ts
-  app.useGlobalFilters(new RpcExceptionFilter())
+  app.useGlobalFilters(new ExceptionFilter());
+
   //لا تعدل على جسم الطلب
-/*
-  app.connectMicroservice({
-    transport: Transport.RMQ, //AMQP
-    options: {
-      urls: ['amqp://localhost:5672'],
-      queue: 'geo_queue',
-      queueOptions: { durable: true },
-      noAck: false,
-      prefetchCount: 2, //  لا تضعها واحد مشان الخيط ياخد من الـ stack اثناء تنفيذ الـ event loop
-    },
-  });
+  /*
+    app.connectMicroservice({
+      transport: Transport.RMQ, //AMQP
+      options: {
+        urls: ['amqp://localhost:5672'],
+        queue: 'geo_queue',
+        queueOptions: { durable: true },
+        noAck: false,
+        prefetchCount: 2, //  لا تضعها واحد مشان الخيط ياخد من الـ stack اثناء تنفيذ الـ event loop
+      },
+    });
 
-  app.connectMicroservice({
-    transport: Transport.RMQ,
-    options: {
-      urls: ['amqp://localhost:5672'],
-      queue: 'sms_queue',
-      queueOptions: { durable: true },
-      noAck: false,
-      prefetchCount: 4,
-    },
-  });
+    app.connectMicroservice({
+      transport: Transport.RMQ,
+      options: {
+        urls: ['amqp://localhost:5672'],
+        queue: 'sms_queue',
+        queueOptions: { durable: true },
+        noAck: false,
+        prefetchCount: 4,
+      },
+    });
 
-  await app.startAllMicroservices();*/
+    await app.startAllMicroservices();*/
 
   app.use('/webhook/stripe', express.raw({ type: 'application/json' }));
 
@@ -66,6 +67,7 @@ async function bootstrap() {
   const documentation = SwaggerModule.createDocument(app, swagger);
   SwaggerModule.setup('property-doc', app, documentation);
   await app.listen(process.env.PORT ?? 3000); //
-  console.log("API Gateway started");
+  console.log('API Gateway started');
 }
+
 bootstrap();

@@ -8,9 +8,20 @@ import { I18nSetModule } from '@malaz/contracts/modules/set/i18n-set.module';
 import { ContractsModule } from './contracts/contracts.module';
 import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module';
 import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module';
+import { GeoQueRpcModule } from '@malaz/contracts/modules/rpc/geo-que-rpc.module';
+import { UserGeoModule } from './user-geo/user-geo.module';
+import { UserSmsModule } from './user-sms/user-sms.module';
+import { SmsQueRpcModule } from '@malaz/contracts/modules/rpc/sms-que-rpc.module';
+import { AnalyticsModule } from '../../automation-analytics-micro/src/analytics/analytics.module';
+import { FromRpcToUsersModule } from './a-from-rpc-to-users/from-rpc-to-users.module';
 
 @Module({
   imports: [
+    UserSmsModule,
+    UserGeoModule,
+    SmsQueRpcModule,
+    GeoQueRpcModule,
+    GlobalCacheModule,
     AuditModule,
     ContractsModule,
     AuditModule,
@@ -19,6 +30,10 @@ import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module'
     JwtConfigModule,
     ConfigSetModule,
     I18nSetModule,
+    UserGeoModule,
+    UserSmsModule,
+    AnalyticsModule,
+    FromRpcToUsersModule,
   ],
   controllers: [UsersMicroController],
   providers: [UsersMicroService],
