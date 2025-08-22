@@ -3,8 +3,12 @@ import { PropertiesMicroModule } from './properties-micro.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(PropertiesMicroModule, {
-    transport: Transport.RMQ,
+  const app = await NestFactory.create(PropertiesMicroModule, {
+    logger: false,
+  });
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ, //AMQP
     options: {
       urls: ['amqp://localhost:5672'],
       queue: 'properties_queue',
@@ -13,8 +17,18 @@ async function bootstrap() {
       },
     },
   });
+  app.connectMicroservice({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://localhost:5672'],
+      queue: 'geo_queue',
+      queueOptions: { durable: true },
+      noAck: false,
+    },
+  });
+  await app.startAllMicroservices();
 
-  await app.listen();
-  console.log('Properties microservice is listening')
+  console.log('Properties microservice is listening');
 }
+
 bootstrap();

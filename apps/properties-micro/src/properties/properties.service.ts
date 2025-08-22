@@ -1,20 +1,11 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  Query,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
-import { DataSource, EntityManager, Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { Property } from './entities/property.entity';
 import { PropertiesImgProvider } from './providers/properties-img.provider';
-import * as bcrypt from 'bcryptjs';
 import { PropertiesDelProvider } from './providers/properties-del.provider';
 import { PropertiesGetProvider } from './providers/properties-get.provider';
 import { PropertiesUpdateProvider } from './providers/properties-update.provider';
-import { PriorityRatio } from './entities/priority-ratio.entity';
 import { PropertiesVoSuViProvider } from './providers/properties-vo-su-vi.provider';
 import { PropertiesCreateProvider } from './providers/properties-create.provider';
 import { ConfigService } from '@nestjs/config';
@@ -84,18 +75,23 @@ export class PropertiesService {
     return this.propertiesUpdateProvider.rejectAgencyPro(proId, agencyId);
   }
 
-  getAll(query: FilterPropertyDto,userId? : number,  ownerId?: number, agencyId?: number) {
+  getAll(
+    query: FilterPropertyDto,
+    userId?: number,
+    ownerId?: number,
+    agencyId?: number,
+  ) {
     return this.propertiesGetProvider.getAll(query, userId, ownerId, agencyId);
   }
 
   getAllPendingAgency(
     query: FilterPropertyDto,
-    userId? : number,
+    userId?: number,
     ownerId?: number,
     agencyId?: number,
   ) {
     query.status = PropertyStatus.PENDING;
-    return this.propertiesGetProvider.getAll(query,userId, ownerId, agencyId);
+    return this.propertiesGetProvider.getAll(query, userId, ownerId, agencyId);
   }
 
   async getOnePro(proId: number, userId: number) {
@@ -106,12 +102,12 @@ export class PropertiesService {
     return this.propertiesGetProvider.getProByUser(proId, userId, role);
   }
 
-  async getProByGeo(geoProDto: GeoProDto, userId : number) {
+  async getProByGeo(geoProDto: GeoProDto, userId: number) {
     return this.propertiesGetProvider.getProByGeo(geoProDto, userId);
   }
 
-  async getProNearMe(nearProDto: NearProDto) {
-    return this.propertiesGetProvider.getProNearMe(nearProDto);
+  async getProNearMe(nearProDto: NearProDto, userId: number) {
+    return this.propertiesGetProvider.getProNearMe(nearProDto, userId);
   }
 
   async deleteOwnerPro(proId: number, userId: number, password: string) {
@@ -165,5 +161,4 @@ export class PropertiesService {
   getTopScorePro(limit: number) {
     return this.propertiesGetProvider.getTopScorePro(limit);
   }
-
 }

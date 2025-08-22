@@ -25,10 +25,13 @@ export class PropertiesUpdateProvider {
     @InjectRepository(Property)
     private propertyRepository: Repository<Property>,
     private readonly propertiesGetProvider: PropertiesGetProvider,
-    private usersGetProvider: UsersGetProvider,
+    @Inject('USERS_SERVICE')
+    private readonly usersClient: ClientProxy,
+    private usersGetProvider: UsersGetProvider, // محمد شيل هي
     @Inject('SMS_SERVICE') private readonly client2: ClientProxy,
     private i18n: I18nService,
   ) {}
+
   async updateOwnerPro(
     proId: number,
     ownerId: number,
@@ -50,6 +53,7 @@ export class PropertiesUpdateProvider {
     await this.updateTranslatedProperty(property, updatePropertyDto);
     return this.propertyRepository.save({ ...property, ...updatePropertyDto });
   }
+
   async updateAgencyPro(
     proId: number,
     agencyId: number,
@@ -122,11 +126,6 @@ export class PropertiesUpdateProvider {
     await this.updateTranslatedProperty(property, update);
     return this.propertyRepository.save({ ...property, ...update });
   }
-  async markCommissionPaid(proId: number) {
-    return this.propertyRepository.update(proId, {
-      commissionPaid: true,
-    });
-  }
   async updateTranslatedProperty(
     property: Property,
     updatePropertyDto: UpdatePropertyDto | EditProAgencyDto,
@@ -154,4 +153,10 @@ export class PropertiesUpdateProvider {
       );
     }
   }
+  async markCommissionPaid(proId: number) {
+    return this.propertyRepository.update(proId, {
+      commissionPaid: true,
+    });
+  }
 }
+

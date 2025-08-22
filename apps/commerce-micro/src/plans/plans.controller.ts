@@ -16,6 +16,7 @@ export class PlansController {
 
   @MessagePattern('plans.createBack')
   createBackPlanes() {
+    console.log('back');
     return this.plansService.create_back_planes();
   }
 

@@ -26,7 +26,7 @@ import { catchError, retry, timeout } from 'rxjs';
 @Controller('auth')
 export class ToAuthController {
   constructor(
-    @Inject('AUTH_SERVICES')
+    @Inject('AUTH_SERVICE')
     private readonly authClient: ClientProxy,
   ) {} // أي اسم client
 

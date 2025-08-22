@@ -1,17 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  ParseFloatPipe,
-} from '@nestjs/common';
+import { Controller, Get, ParseFloatPipe, Query } from '@nestjs/common';
 import { GeolocationService } from './geolocation.service';
-import { CreateGeolocationDto } from './dto/create-geolocation.dto';
-import { UpdateGeolocationDto } from './dto/update-geolocation.dto';
 
 @Controller('geolocation')
 export class GeolocationController {

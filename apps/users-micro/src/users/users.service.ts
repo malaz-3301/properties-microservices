@@ -1,26 +1,16 @@
-import {
-  ConflictException,
-  HttpException,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { User } from './entities/user.entity';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { UsersOtpProvider } from './providers/users-otp.provider';
-import { firstValueFrom } from 'rxjs';
 import { UsersUpdateProvider } from './providers/users-update.provider';
 import { UsersDelProvider } from './providers/users-del.provider';
 import { UsersGetProvider } from './providers/users-get.provider';
 import { UsersImgProvider } from './providers/users-img.provider';
 
-import { OtpEntity } from './entities/otp.entity';
-
 import { UsersRegisterProvider } from './providers/users-register-provider';
-import { ClientProxy } from '@nestjs/microservices';
-import { ConfigService } from '@nestjs/config';
 import { UserType } from '@malaz/contracts/utils/enums';
 import { RegisterUserDto } from '@malaz/contracts/dtos/users/users/register-user.dto';
 import { UpdateUserDto } from '@malaz/contracts/dtos/users/users/update-user.dto';
@@ -94,6 +84,10 @@ export class UsersService {
     return this.usersGetProvider.getOneAgency(agencyId);
   }
 
+  async getOneAgencyInfo(agencyId: number) {
+    return this.usersGetProvider.getOneAgencyInfo(agencyId);
+  }
+
   async getAdminById(adminId: number) {
     return this.usersGetProvider.getAdminById(adminId);
   }
@@ -146,4 +140,4 @@ export class UsersService {
       ...(planId === 2 ? { hasUsedTrial: true } : {}),
     });
   }
-  }
+}

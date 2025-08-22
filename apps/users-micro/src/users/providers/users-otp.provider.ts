@@ -3,7 +3,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { User } from '../entities/user.entity';
@@ -14,9 +13,9 @@ import { JwtService } from '@nestjs/jwt';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import * as process from 'node:process';
 import { UsersGetProvider } from './users-get.provider';
 import { OtpEntity } from '../entities/otp.entity';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class UsersOtpProvider {
@@ -102,7 +101,10 @@ export class UsersOtpProvider {
     const user = await this.usersGetProvider.findByIdOtp(userId); //otp select
     //اذا مو عملية استرداد
     if (user.isAccountVerified && !ResetRequest) {
-      throw new BadRequestException('Your account has been verified');
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Your account has been verified',
+      });
     }
 
     //اختبار  وقت اخر طلب كود

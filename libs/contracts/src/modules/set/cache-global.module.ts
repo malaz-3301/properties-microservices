@@ -3,7 +3,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { createKeyv } from '@keyv/redis';
 import Keyv from 'keyv';
 import { CacheableMemory } from 'cacheable';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Global()
 @Module({
@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
   imports: [
     CacheModule.registerAsync({
       isGlobal: true,
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
         return {
