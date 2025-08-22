@@ -16,6 +16,7 @@ export class UsersController {
 
   @MessagePattern('users.register_back')
   async register_back_users() {
+    console.log('register_back_users');
     return this.usersService.register_back_users();
   }
 

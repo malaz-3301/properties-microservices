@@ -3,9 +3,7 @@ import { UsersMicroModule } from './users-micro.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
-  const app = await NestFactory.create(UsersMicroModule, {
-    logger: false,
-  });
+  const app = await NestFactory.create(UsersMicroModule);
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,

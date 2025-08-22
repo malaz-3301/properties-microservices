@@ -27,7 +27,7 @@ import { UpdateUserByAdminDto } from '@malaz/contracts/dtos/users/users/update-u
 import { ClientProxy } from '@nestjs/microservices';
 import { catchError, retry, timeout } from 'rxjs';
 
-@Controller('user')
+@Controller('users')
 export class ToUsersUsersController {
   constructor(
     @Inject('USERS_SERVICE')
@@ -48,7 +48,7 @@ export class ToUsersUsersController {
   @Post('back')
   async register_back_users() {
     return this.usersClient
-      .send('users.registerBack', {})
+      .send('users.register_back', {})
       .pipe(retry(2), timeout(5000));
   }
 

@@ -3,9 +3,7 @@ import { PropertiesMicroModule } from './properties-micro.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
-  const app = await NestFactory.create(PropertiesMicroModule, {
-    logger: false,
-  });
+  const app = await NestFactory.create(PropertiesMicroModule);
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ, //AMQP

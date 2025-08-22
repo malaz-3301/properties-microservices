@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from '@malaz/contracts/dtos/auth/login-user.dto';
 import { ResetAccountDto } from '@malaz/contracts/dtos/auth/reset-account.dto';
@@ -17,8 +17,9 @@ import { User } from '../../users-micro/src/users/entities/user.entity';
 import { UsersOtpProvider } from '../../users-micro/src/users/providers/users-otp.provider';
 import { UsersGetProvider } from '../../users-micro/src/users/providers/users-get.provider';
 import { BannedService } from '../../users-micro/src/banned/banned.service';
-import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { I18nService } from 'nestjs-i18n';
+
 @Injectable()
 export class AuthMicroService {
   constructor(
@@ -28,15 +29,18 @@ export class AuthMicroService {
     private readonly usersOtpProvider: UsersOtpProvider,
     private readonly usersGetProvider: UsersGetProvider,
     private readonly bannedService: BannedService,
-    @Inject('SMS_SERVICE') private readonly client2: ClientProxy,
+    @Inject('SMS_SERVICE') private readonly smsClient: ClientProxy,
     private i18n: I18nService,
   ) {}
+
   /**
    *
    * @param loginUserDto
    */
   async login(loginUserDto: LoginUserDto) {
     const { phone, username, password } = loginUserDto;
+    console.log('babba');
+
     const user = phone //if بطريقة عمك ملاز
       ? await this.usersRepository.findOneBy({ phone: phone })
       : await this.usersRepository.findOneBy({ username: username });
@@ -55,24 +59,20 @@ export class AuthMicroService {
       id: user.id,
       userType: user.userType,
     });
-    const login = await this.i18n.t('transolation.login', {
+    const login = this.i18n.t('transolation.login', {
       lang: user.language,
     });
     console.log(login);
-    this.client2.emit(
-      'create_user.sms',
-      new RmqRecordBuilder({
-        phone: user.phone,
-        message: `${login}`,
-      })
-        .setOptions({ persistent: true })
-        .build(),
-    );
+    this.smsClient.emit('create_user.sms', {
+      phone: user.phone,
+      message: `${login}`,
+    });
     return {
       accessToken,
       UserType: user.userType,
     };
   }
+
   async resetAccount(resetAccountDto: ResetAccountDto) {
     const { phone, username } = resetAccountDto;
     const user = phone //if بطريقة عمك ملاز
@@ -84,6 +84,7 @@ export class AuthMicroService {
     return await this.usersOtpProvider.otpCreate(user.id); //لأنك حذفت السطر ممكن و ارسال
     //otpVerify
   }
+
   async resetPassword(userId: number, resetPasswordDto: ResetPasswordDto) {
     // طبعا بعد التحقق من الرمز
     const user = await this.usersGetProvider.findByIdOtp(userId);
@@ -108,6 +109,7 @@ export class AuthMicroService {
       });
     }
   }
+
   tokenTime(payload) {
     const TimeBySeconds = payload.exp - Math.floor(Date.now() / 1000); // التحويل لثانية
     const hours = Math.floor(TimeBySeconds / 3600);
@@ -117,6 +119,7 @@ export class AuthMicroService {
       Expires_in: ` < ${hours}h : ${minutes}m  > `,
     };
   }
+
   async getCurrentUser(myId: number) {
     const user = await this.usersRepository.findOne({
       where: { id: myId },
@@ -127,10 +130,12 @@ export class AuthMicroService {
     }
     return user;
   }
+
   async addAdmin(addAdminDto: AddAdminDto) {
     addAdminDto['isAccountVerified'] = true;
     await this.usersRepository.save(addAdminDto);
   }
+
   async changeLanguage(Language: Language, userId: number) {
     await this.usersRepository.update({ id: userId }, { language: Language });
   }

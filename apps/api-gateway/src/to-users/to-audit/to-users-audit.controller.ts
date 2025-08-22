@@ -12,7 +12,7 @@ import { UserType } from '@malaz/contracts/utils/enums';
 import { ClientProxy } from '@nestjs/microservices';
 import { catchError, retry, timeout } from 'rxjs';
 
-@Controller('to-users-audit')
+@Controller('audit')
 export class ToUsersAuditController {
   constructor(
     @Inject('USERS_SERVICE')

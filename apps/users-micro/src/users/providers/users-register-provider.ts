@@ -40,7 +40,7 @@ export class UsersRegisterProvider {
         message: 'User already exists',
       });
     }
-    console.log("nnns");
+    console.log('nnns');
 
     registerUserDto.password = await this.usersOtpProvider.hashCode(password);
     //OTP
@@ -83,11 +83,13 @@ export class UsersRegisterProvider {
       userId: result.id,
     };
   }
+
   async register_back_users() {
     await this.dataSource.query(`
     TRUNCATE TABLE "users" RESTART IDENTITY CASCADE;
   `);
     const pass = await this.usersOtpProvider.hashCode('lim1234');
+
     const users = [
       {
         phone: '0953266666',
@@ -147,6 +149,6 @@ export class UsersRegisterProvider {
           'eqqB3fMARmZEA3c8Qm2iri:APA91bG0VJ7TN6zIPBXO_4nNANeU2YSVKUXMVvuOHUG1y6bBLmJDEoLXv-IHJN2AZyDcRLmVKQS7VXlCGvRxQtW7I3MHelgo9IMdxZ2sxu5K9eaAEs_YWow',
       },
     ];
-    await this.usersRepository.save(users);
+    return await this.usersRepository.save(users);
   }
 }

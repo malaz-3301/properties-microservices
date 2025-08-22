@@ -1,4 +1,5 @@
 import {
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -6,14 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
-import {
-  Between,
-  FindOptionsWhere,
-  LessThanOrEqual,
-  Like,
-  MoreThanOrEqual,
-  Repository,
-} from 'typeorm';
+import { FindOptionsWhere, Like, Repository } from 'typeorm';
 
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { AgencyInfo } from '../entities/agency-info.entity';
@@ -21,6 +15,7 @@ import { createHash } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { Language, UserType } from '@malaz/contracts/utils/enums';
 import { FilterUserDto } from '@malaz/contracts/dtos/users/users/filter-user.dto';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class UsersGetProvider {
@@ -129,11 +124,15 @@ export class UsersGetProvider {
 
     const where = Object.assign({}, ...filters);
     console.log(where);
+
     const users: User[] = await this.usersRepository.find({
       where,
     });
     if (!users || users.length === 0) {
-      throw new NotFoundException('No users found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'no users found',
+      });
     }
 
     await this.cacheManager.set(key, users);
@@ -144,6 +143,7 @@ export class UsersGetProvider {
     //ينشئ كائن تجزئة باستخدام خوارزمية MD5
     return createHash('md5').update(JSON.stringify(obj)).digest('hex');
   }
+
   async translate(targetLang: Language, text: string) {
     const Url = this.configService.get<string>('TRANSLATE');
     const sourceLang = Language.ARABIC;
@@ -162,5 +162,4 @@ export class UsersGetProvider {
       });
     return translatedText;
   }
-
 }

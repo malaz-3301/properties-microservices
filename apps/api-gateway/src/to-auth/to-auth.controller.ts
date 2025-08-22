@@ -33,6 +33,7 @@ export class ToAuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   login(@Body() loginUserDto: LoginUserDto) {
+    console.log('login');
     return this.authClient.send('auth.login', loginUserDto).pipe(
       retry(2),
       timeout(5000),

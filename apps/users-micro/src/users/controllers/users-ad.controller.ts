@@ -8,12 +8,12 @@ import { UpdateUserByAdminDto } from '@malaz/contracts/dtos/users/users/update-u
 export class UsersAdController {
   constructor(private readonly usersService: UsersService) {}
 
-  @MessagePattern('userA.get_all_users')
+  @MessagePattern('users.getAllUsers')
   getAllAUsers(@Payload() query: FilterUserDto) {
     return this.usersService.getAllUsers(query);
   }
 
-  @MessagePattern('userA.get_all_pending')
+  @MessagePattern('users.getAllPending')
   getAllPending(@Payload() query: FilterUserDto) {
     return this.usersService.getAllPending(query);
   }
