@@ -3,15 +3,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Banned } from './entities/banned.entity';
 import { Repository } from 'typeorm';
 import { CreateBannedDto } from '@malaz/contracts/dtos/users/banned/create-banned.dto';
+import { UsersGetProvider } from '../users/providers/users-get.provider';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class BannedService {
   constructor(
     @InjectRepository(Banned)
     private readonly bannedRepository: Repository<Banned>,
+    private readonly usersGetProvider: UsersGetProvider,
   ) {}
 
-  create(createBannedDto: CreateBannedDto) {
+  async create(createBannedDto: CreateBannedDto, userId: number) {
+    const user = await this.usersGetProvider.findById(userId);
+
     //مدة صلاحية + الوقت الحالي
     let durationMs: number;
     const [numStr, unit] = createBannedDto.banDuration.split('_') ?? [];
@@ -29,12 +34,18 @@ export class BannedService {
         durationMs = parseInt(numStr) * 12 * 30 * 24 * 60 * 60 * 1000;
         break;
       default:
-        throw new Error(`Unsupported time unit: ${unit}`);
+        throw new RpcException({
+          statusCode: 400,
+          message: `Unsupported time unit: ${unit}`,
+        });
     }
-    return this.bannedRepository.save({
+
+    await this.bannedRepository.save({
       reason: createBannedDto.reason,
       banExpiresAt: new Date(Date.now() + durationMs),
+      user: user,
     });
+    return 'تم حظر ابن الذين';
   }
 
   async checkBlock(userId: number) {
@@ -63,7 +74,13 @@ export class BannedService {
       where: { user_id: id },
     });
     if (banned) {
-      return this.bannedRepository.remove(banned);
+      await this.bannedRepository.remove(banned);
+      return 'تم فك الحظر';
+    } else {
+      throw new RpcException({
+        statusCode: 404,
+        message: `Not Blocked`,
+      });
     }
   }
 }

@@ -2,8 +2,11 @@ import { Roles } from '@malaz/contracts/decorators/user-role.decorator';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Inject,
+  Param,
+  ParseIntPipe,
   Post,
   UseGuards,
   UseInterceptors,
@@ -15,25 +18,30 @@ import { CreateBannedDto } from '@malaz/contracts/dtos/users/banned/create-banne
 import { ClientProxy } from '@nestjs/microservices';
 import { catchError, retry, timeout } from 'rxjs';
 
-@Controller('to-users-banned')
+@Controller('banned')
 export class ToUsersBannedController {
   constructor(
     @Inject('USERS_SERVICE')
     private readonly usersClient: ClientProxy,
   ) {}
 
-  @Post()
+  @Post('/:userId')
   @Roles(UserType.ADMIN, UserType.SUPER_ADMIN)
   @UseGuards(AuthRolesGuard)
   @UseInterceptors(AuditInterceptor)
-  create(@Body() createBannedDto: CreateBannedDto) {
-    return this.usersClient.send('users-banned.create', createBannedDto).pipe(
-      retry(2),
-      timeout(5000),
-      catchError((err) => {
-        throw err;
-      }),
-    );
+  create(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() createBannedDto: CreateBannedDto,
+  ) {
+    return this.usersClient
+      .send('users-banned.create', { userId, createBannedDto })
+      .pipe(
+        retry(2),
+        timeout(5000),
+        catchError((err) => {
+          throw err;
+        }),
+      );
   }
 
   @Get()
@@ -48,5 +56,13 @@ export class ToUsersBannedController {
         throw err;
       }),
     );
+  }
+
+  @Delete(':id')
+  @Roles(UserType.ADMIN, UserType.SUPER_ADMIN)
+  @UseGuards(AuthRolesGuard)
+  @UseInterceptors(AuditInterceptor)
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usersClient.send('users-banned.remove', id);
   }
 }

@@ -1,48 +1,26 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  UseInterceptors,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { BannedService } from './banned.service';
-import { AuditInterceptor } from '@malaz/contracts/utils/interceptors/audit.interceptor';
-import { AuthRolesGuard } from '@malaz/contracts/guards/auth-roles.guard';
-import { UserType } from '@malaz/contracts/utils/enums';
-import { Roles } from '@malaz/contracts/decorators/user-role.decorator';
 import { CreateBannedDto } from '@malaz/contracts/dtos/users/banned/create-banned.dto';
-
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('banned')
 export class BannedController {
   constructor(private readonly bannedService: BannedService) {}
 
-  @Post()
-  @Roles(UserType.ADMIN, UserType.SUPER_ADMIN)
-  @UseGuards(AuthRolesGuard)
-  @UseInterceptors(AuditInterceptor)
-  create(@Body() createBannedDto: CreateBannedDto) {
-    return this.bannedService.create(createBannedDto);
+  @MessagePattern('users-banned.create')
+  create(
+    @Payload() Payload: { userId: number; createBannedDto: CreateBannedDto },
+  ) {
+    return this.bannedService.create(Payload.createBannedDto, Payload.userId);
   }
 
-  @Get()
-  @Roles(UserType.ADMIN, UserType.SUPER_ADMIN)
-  @UseGuards(AuthRolesGuard)
-  @UseInterceptors(AuditInterceptor)
+  @MessagePattern('users-banned.findAll')
   findAll() {
     return this.bannedService.findAll();
   }
 
-  @Delete(':id')
-  @Roles(UserType.ADMIN, UserType.SUPER_ADMIN)
-  @UseGuards(AuthRolesGuard)
-  @UseInterceptors(AuditInterceptor)
-  remove(@Param('id', ParseIntPipe) id: number) {
+  @MessagePattern('users-banned.remove')
+  remove(@Payload() id: number) {
     return this.bannedService.remove(+id);
   }
 }
