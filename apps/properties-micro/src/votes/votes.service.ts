@@ -11,9 +11,8 @@ import { Property } from '../properties/entities/property.entity';
 import { PropertiesGetProvider } from '../properties/providers/properties-get.provider';
 import { Vote } from './entities/vote.entity';
 import { PropertiesVoSuViProvider } from '../properties/providers/properties-vo-su-vi.provider';
-import { PriorityRatio } from '../properties/entities/priority-ratio.entity';
 import { VotesGetProvider } from './providers/votes-get.provider';
-import { AgenciesVoViProvider } from '../../../users-micro/src/users/providers/agencies-vo-vi.provider';
+import { ClientProxy } from '@nestjs/microservices';
 
 //forwardRef(() كسر دائرة الاعتماد
 @Injectable()
@@ -25,8 +24,9 @@ export class VotesService {
     @Inject(forwardRef(() => PropertiesGetProvider))
     private readonly propertiesGetProvider: PropertiesGetProvider,
     private readonly propertiesVoViProvider: PropertiesVoSuViProvider,
-    private readonly agenciesVoViProvider: AgenciesVoViProvider,
     private readonly votesGetProvider: VotesGetProvider,
+    @Inject('USERS_SERVICE')
+    private readonly usersClient: ClientProxy,
   ) {}
 
   async changeVoteStatus(proId: number, value: number, userId: number) {
@@ -67,7 +67,10 @@ export class VotesService {
 
   //انتبه ownerId
   async changeAllVotes(proId: number, value: number, agencyId: number) {
-    await this.agenciesVoViProvider.changeVotesNum(agencyId, value); //agency
+    this.usersClient.emit('stats.changeVotesNum', {
+      id: agencyId, //
+      value: value,
+    });
     await this.propertiesVoViProvider.changeVotesNum(proId, value); //property
     return await this.changePrimacy(proId, value);
   }

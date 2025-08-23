@@ -1,23 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
-import { create } from 'axios';
-
+import { DataSource } from 'typeorm';
 
 import { CreateAnalyticsDto } from '@malaz/contracts/dtos/analytics/create-analytics.dto';
-import { OrderStatus, ReportStatus, ReportTitle, UserType } from '@malaz/contracts/utils/enums';
-import { ReportsMicro } from '../../../reports-micro/src/entities/reports-micro.entity';
+import {
+  OrderStatus,
+  ReportStatus,
+  ReportTitle,
+  UserType,
+} from '@malaz/contracts/utils/enums';
 
 @Injectable()
 export class AnalyticsService {
   constructor(
-/*    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Property)
-    private readonly propertyRepository: Repository<Property>,
- */
-/*@InjectRepository(ReportsMicro)
-private readonly reportRepository: Repository<ReportsMicro>,*/
+    /*    @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
+        @InjectRepository(Property)
+        private readonly propertyRepository: Repository<Property>,
+     */
+    /*@InjectRepository(ReportsMicro)
+    private readonly reportRepository: Repository<ReportsMicro>,*/
     private dataSource: DataSource,
   ) {}
 
@@ -30,10 +31,10 @@ private readonly reportRepository: Repository<ReportsMicro>,*/
   }
 
   /*
-  
+
   Statistics
-  
-  
+
+
    */
   async findAll() {
     const [result1] = await this.dataSource.query(

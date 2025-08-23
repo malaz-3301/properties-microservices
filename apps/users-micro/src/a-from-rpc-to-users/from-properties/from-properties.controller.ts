@@ -1,5 +1,4 @@
 import { Controller } from '@nestjs/common';
-import { FromPropertiesService } from './from-properties.service';
 import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { UsersService } from '../../users/users.service';
 import { AgenciesVoViProvider } from '../../users/providers/agencies-vo-vi.provider';
@@ -7,7 +6,6 @@ import { AgenciesVoViProvider } from '../../users/providers/agencies-vo-vi.provi
 @Controller()
 export class FromPropertiesController {
   constructor(
-    private readonly fromPropertiesService: FromPropertiesService,
     private readonly usersService: UsersService,
     private readonly agenciesVoViProvider: AgenciesVoViProvider,
   ) {}
@@ -20,9 +18,21 @@ export class FromPropertiesController {
 
   @EventPattern('analytics.chanePropertiesNum')
   async chanePropertiesNum(
-    @Payload() payload: { ownerId: number; value: number },
+    @Payload() payload: { userId: number; value: number },
   ) {
-    const { ownerId, value } = payload;
-    return await this.agenciesVoViProvider.chanePropertiesNum(ownerId, value);
+    const { userId, value } = payload;
+    return await this.agenciesVoViProvider.chanePropertiesNum(userId, value);
+  }
+
+  @EventPattern('stats.incrementTotalViews')
+  async incrementTotalViews(@Payload() data: { agencyId: number }) {
+    const { agencyId } = data;
+    return await this.agenciesVoViProvider.incrementTotalViews(agencyId);
+  }
+
+  @EventPattern('stats.changeVotesNum')
+  async changeVotesNum(@Payload() payload: { id: number; value: number }) {
+    const { id, value } = payload;
+    await this.agenciesVoViProvider.changeVotesNum(id, value); //agency
   }
 }

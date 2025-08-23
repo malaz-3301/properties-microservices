@@ -27,6 +27,7 @@
     }
   },
   "include": [
-    "apps/**/src/**/*.ts"
+    "apps/**/src/**/*.ts",
+    "libs/**/src/**/*.ts"
   ]
 }

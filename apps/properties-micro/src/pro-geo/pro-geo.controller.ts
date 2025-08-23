@@ -11,7 +11,6 @@ import {
   RmqContext,
   RmqRecordBuilder,
 } from '@nestjs/microservices';
-import { PropertiesProcessor } from '../properties/processors/properties.processor';
 
 @Controller()
 export class ProGeoController {
@@ -22,7 +21,7 @@ export class ProGeoController {
     @Inject('GEO_SERVICE') private readonly geoClient: ClientProxy, // هي مشان اعادة المحاولة ,
   ) {}
 
-  private readonly logger = new Logger(PropertiesProcessor.name);
+  private readonly logger = new Logger(ProGeoController.name);
 
   // يا راجل الـ message before event
   @MessagePattern('get_property.geo')

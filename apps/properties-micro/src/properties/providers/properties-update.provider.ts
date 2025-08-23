@@ -18,6 +18,7 @@ import { UpdatePropertyDto } from '@malaz/contracts/dtos/properties/properties/u
 import { EditProAgencyDto } from '@malaz/contracts/dtos/properties/properties/edit-pro-agency.dto';
 import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
 import { I18nService } from 'nestjs-i18n';
+import { lastValueFrom, retry, timeout } from 'rxjs';
 
 @Injectable()
 export class PropertiesUpdateProvider {
@@ -67,6 +68,7 @@ export class PropertiesUpdateProvider {
     await this.updateTranslatedProperty(property, editProAgencyDto);
     return this.propertyRepository.save({ ...property, ...editProAgencyDto });
   }
+
   async acceptAgencyPro(proId: number, agencyId: number) {
     const property = await this.propertiesGetProvider.getProByUser(
       proId,
@@ -76,8 +78,12 @@ export class PropertiesUpdateProvider {
     const updatedProperty = await this.propertyRepository.update(proId, {
       status: PropertyStatus.ACCEPTED,
     });
-    const user = await this.usersGetProvider.findById(property.owner.id);
-    const accept = await this.i18n.t('transolation.AcceptMessage', {
+    const user = await lastValueFrom(
+      this.usersClient
+        .send('users.findById', { id: property.owner.id })
+        .pipe(retry(2), timeout(5000)),
+    );
+    const accept = this.i18n.t('transolation.AcceptMessage', {
       lang: user.language,
     });
     console.log(accept);
@@ -92,6 +98,7 @@ export class PropertiesUpdateProvider {
     );
     return updatedProperty;
   }
+
   async rejectAgencyPro(proId: number, agencyId: number) {
     const property = await this.propertiesGetProvider.getProByUser(
       proId,
@@ -101,8 +108,12 @@ export class PropertiesUpdateProvider {
     const updatedProperty = await this.propertyRepository.update(proId, {
       status: PropertyStatus.Rejected,
     });
-    const user = await this.usersGetProvider.findById(property.owner.id);
-    const reject = await this.i18n.t('transolation.RejectMessage', {
+    const user = await lastValueFrom(
+      this.usersClient
+        .send('users.findById', { id: property.owner.id })
+        .pipe(retry(2), timeout(5000)),
+    );
+    const reject = this.i18n.t('transolation.RejectMessage', {
       lang: user.language,
     });
     console.log(reject);
@@ -121,11 +132,13 @@ export class PropertiesUpdateProvider {
           rejectProAdminDto.message,
         );*/
   }
+
   async updateAdminPro(proId: number, update: any) {
     const property = await this.propertiesGetProvider.findById(proId);
     await this.updateTranslatedProperty(property, update);
     return this.propertyRepository.save({ ...property, ...update });
   }
+
   async updateTranslatedProperty(
     property: Property,
     updatePropertyDto: UpdatePropertyDto | EditProAgencyDto,
@@ -153,10 +166,10 @@ export class PropertiesUpdateProvider {
       );
     }
   }
+
   async markCommissionPaid(proId: number) {
     return this.propertyRepository.update(proId, {
       commissionPaid: true,
     });
   }
 }
-

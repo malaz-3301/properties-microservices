@@ -35,8 +35,12 @@ export class UsersGetProvider {
       relations: { plan: true },
     });
     if (!user) {
-      throw new NotFoundException('User Not Found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'User Not Found',
+      });
     }
+
     console.log(user.userType);
     if (user.userType === (UserType.ADMIN || UserType.SUPER_ADMIN)) {
       throw new UnauthorizedException("You Can't its not user or agency");
@@ -131,7 +135,7 @@ export class UsersGetProvider {
     if (!users || users.length === 0) {
       throw new RpcException({
         statusCode: HttpStatus.NOT_FOUND,
-        message: 'no users found',
+        message: 'No users found',
       });
     }
 

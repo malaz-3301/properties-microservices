@@ -15,10 +15,10 @@ import { AddAdminDto } from '@malaz/contracts/dtos/auth/add-admin.dto';
 import { Language } from '@malaz/contracts/utils/enums';
 import { User } from '../../users-micro/src/users/entities/user.entity';
 import { UsersOtpProvider } from '../../users-micro/src/users/providers/users-otp.provider';
-import { UsersGetProvider } from '../../users-micro/src/users/providers/users-get.provider';
 import { BannedService } from '../../users-micro/src/banned/banned.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { I18nService } from 'nestjs-i18n';
+import { lastValueFrom, retry, timeout } from 'rxjs';
 
 @Injectable()
 export class AuthMicroService {
@@ -27,8 +27,9 @@ export class AuthMicroService {
     private usersRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly usersOtpProvider: UsersOtpProvider,
-    private readonly usersGetProvider: UsersGetProvider,
     private readonly bannedService: BannedService,
+    @Inject('USERS_SERVICE')
+    private readonly usersClient: ClientProxy,
     @Inject('SMS_SERVICE') private readonly smsClient: ClientProxy,
     private i18n: I18nService,
   ) {}
@@ -87,7 +88,11 @@ export class AuthMicroService {
 
   async resetPassword(userId: number, resetPasswordDto: ResetPasswordDto) {
     // طبعا بعد التحقق من الرمز
-    const user = await this.usersGetProvider.findByIdOtp(userId);
+    const user = await lastValueFrom(
+      this.usersClient
+        .send('otp.findById', { id: userId })
+        .pipe(retry(2), timeout(5000)),
+    );
     user.password = await this.usersOtpProvider.hashCode(
       resetPasswordDto.password,
     );

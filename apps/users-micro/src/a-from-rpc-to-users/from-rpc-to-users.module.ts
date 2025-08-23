@@ -1,21 +1,19 @@
 import { Module } from '@nestjs/common';
-import { FromAuthModule } from './from-auth/from-auth.module';
-import { FromAnalyticsModule } from './from-analytics/from-analytics.module';
-import { FromCommerceModule } from './from-commerce/from-commerce.module';
-import { FromNotificationsModule } from './from-notifications/from-notifications.module';
-import { FromPropertiesModule } from './from-properties/from-properties.module';
-import { FromReportsModule } from './from-reports/from-reports.module';
-import { DuplicateModule } from './duplicate/duplicate.module';
+import { DuplicateController } from './duplicate/duplicate.controller';
+import { FromAnalyticsController } from './from-analytics/from-analytics.controller';
+import { FromAuthController } from './from-auth/from-auth.controller';
+import { FromCommerceController } from './from-commerce/from-commerce.controller';
+import { FromPropertiesController } from './from-properties/from-properties.controller';
+import { FromReportsController } from './from-reports/from-reports.controller';
 
 @Module({
-  imports: [
-    FromAuthModule,
-    FromAnalyticsModule,
-    FromCommerceModule,
-    FromNotificationsModule,
-    FromPropertiesModule,
-    FromReportsModule,
-    DuplicateModule,
+  controllers: [
+    DuplicateController,
+    FromAnalyticsController,
+    FromAuthController,
+    FromCommerceController,
+    FromPropertiesController,
+    FromReportsController,
   ],
 })
 export class FromRpcToUsersModule {}

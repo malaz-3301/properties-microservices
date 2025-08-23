@@ -23,11 +23,6 @@ export class UsersAdController {
     return this.usersService.getAllAdmins(query);
   }
 
-  @MessagePattern('userA.get_user_by_id')
-  getUserById(@Payload() id: number) {
-    return this.usersService.getUserById(id);
-  }
-
   @MessagePattern('userA.upgrade_user')
   upgradeUser(@Payload() userId: number) {
     return this.usersService.upgradeUser(userId);

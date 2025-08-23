@@ -1,17 +1,19 @@
 import { Module } from '@nestjs/common';
-import { FromAuthModule } from './from-auth/from-auth.module';
-import { FromAnalyticsModule } from './from-analytics/from-analytics.module';
-import { FromCommerceModule } from './from-commerce/from-commerce.module';
-import { FromNotificationsModule } from './from-notifications/from-notifications.module';
-import { FromUsersModule } from './from-users/from-users.module';
+import { FromUsersController } from './from-users/from-users.controller';
+import { FromPropertiesController } from './from-properties/from-properties.controller';
+import { FromNotificationsController } from './from-notifications/from-notifications.controller';
+import { FromCommerceController } from './from-commerce/from-commerce.controller';
+import { FromAuthController } from './from-auth/from-auth.controller';
+import { FromAnalyticsController } from './from-analytics/from-analytics.controller';
 
 @Module({
-  imports: [
-    FromAuthModule,
-    FromAnalyticsModule,
-    FromCommerceModule,
-    FromNotificationsModule,
-    FromUsersModule,
+  controllers: [
+    FromUsersController,
+    FromPropertiesController,
+    FromNotificationsController,
+    FromCommerceController,
+    FromAuthController,
+    FromAnalyticsController,
   ],
 })
 export class FromRpcToReportsModule {}

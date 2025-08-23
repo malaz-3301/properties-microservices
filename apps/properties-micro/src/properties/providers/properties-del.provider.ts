@@ -36,7 +36,7 @@ export class PropertiesDelProvider {
       throw new UnauthorizedException('Password is incorrect');
     }
     this.usersClient.emit('analytics.chanePropertiesNum', {
-      ownerId,
+      userId: ownerId,
       value: -1,
     });
     return this.propertyRepository.delete({ id: proId });

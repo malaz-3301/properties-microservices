@@ -1,8 +1,7 @@
 import { Controller } from '@nestjs/common';
-import { Payload } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateReportDto } from '@malaz/contracts/dtos/reports/create-report.dto';
 import { ReportsMicroService } from './reports-micro.service';
-import { MessagePattern } from '@nestjs/microservices';
 
 @Controller()
 export class ReportsMicroController {
@@ -35,6 +34,9 @@ export class ReportsMicroController {
   // اخفاء التقرير
   @MessagePattern('reports.update')
   async update(@Payload() payload: { reportId: number; action: boolean }) {
-    return this.reportsMicroService.hide(payload.reportId);
+    return await this.reportsMicroService.update(
+      payload.reportId,
+      payload.action,
+    );
   }
 }

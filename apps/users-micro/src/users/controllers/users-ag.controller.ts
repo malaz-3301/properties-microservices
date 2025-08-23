@@ -29,8 +29,10 @@ export class UsersAgController {
     return this.usersService.upgrade(userId, filenames, agencyCommissionRate);
   }
 
-  @MessagePattern('userU.get_user_by_id')
-  getUserById(@Payload() id: number) {
-    return this.usersService.getUserById(id);
+  //and admins
+  @MessagePattern('users.getUserById')
+  async getUserById(@Payload() payload: { userId: number }) {
+    const { userId } = payload;
+    return this.usersService.getUserById(userId);
   }
 }

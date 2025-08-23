@@ -14,14 +14,12 @@ import { ConfigService } from '@nestjs/config';
 import { Order } from './entities/order.entity';
 
 import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
-import { CreateCommOrderDto } from '@malaz/contracts/dtos/commerce/orders/create-comm-order.dto';
+import { firstValueFrom, lastValueFrom, retry, timeout } from 'rxjs';
 import { OrderStatus } from '@malaz/contracts/utils/enums';
 import { SpaceRemitDto } from '@malaz/contracts/dtos/commerce/orders/space-remit.dto';
 import { CreatePlanOrderDto } from '@malaz/contracts/dtos/commerce/orders/create-plan-order.dto';
-import { PropertiesUpdateProvider } from '../../../properties-micro/src/properties/providers/properties-update.provider';
-import { UsersService } from '../../../users-micro/src/users/users.service';
-import { PropertiesGetProvider } from '../../../properties-micro/src/properties/providers/properties-get.provider';
+import { ClientProxy } from '@nestjs/microservices';
+import { CreateCommOrderDto } from '@malaz/contracts/dtos/commerce/orders/create-comm-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -31,10 +29,11 @@ export class OrdersService {
     @InjectRepository(Plan)
     private readonly planRepository: Repository<Plan>,
     @Inject('STRIPE_CLIENT') private readonly stripe: Stripe,
-    private readonly usersService: UsersService,
+    @Inject('USERS_SERVICE')
+    private readonly usersClient: ClientProxy,
+    @Inject('PROPERTIES_SERVICE')
+    private readonly propertiesClient: ClientProxy,
     private readonly configService: ConfigService,
-    private readonly propertiesGetProvider: PropertiesGetProvider,
-    private readonly propertiesUpdateProvider: PropertiesUpdateProvider,
     private httpService: HttpService,
   ) {}
 
@@ -84,8 +83,10 @@ export class OrdersService {
 
   ///////
   async createCommissionStrip(createCommOrderDto: CreateCommOrderDto) {
-    const property = await this.propertiesGetProvider.findById(
-      createCommOrderDto.proId,
+    const property = await lastValueFrom(
+      this.propertiesClient
+        .send('properties.findById', { proId: createCommOrderDto.proId })
+        .pipe(retry(2), timeout(5000)),
     );
 
     //لان يقيس بالسنت ولا بقل الا عدد صحيح
@@ -193,11 +194,15 @@ export class OrdersService {
       planExpiresAt: new Date(Date.now() + durationMs),
     });
     await this.orderRepository.save(order);
-    return await this.usersService.setUserPlan(userId, planId);
+    return this.usersClient.emit('users.setUserPlan', { userId, planId });
   }
 
   async markCommissionPaid(proId: number) {
-    return this.propertiesUpdateProvider.markCommissionPaid(proId);
+    return await lastValueFrom(
+      this.propertiesClient
+        .send('properties.markCommissionPaid', { proId })
+        .pipe(retry(2), timeout(5000)),
+    );
   }
 
   private readonly apiUrl1 = 'https://spaceremit.com/api/v2/payment_info/';

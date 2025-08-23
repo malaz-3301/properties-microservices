@@ -22,7 +22,6 @@ import { VotesService } from '../../votes/votes.service';
 import { createHash } from 'crypto';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom, lastValueFrom, retry, timeout } from 'rxjs';
-import { I18nService } from 'nestjs-i18n';
 import { GeoEnum, Language, UserType } from '@malaz/contracts/utils/enums';
 import { GeoProDto } from '@malaz/contracts/dtos/properties/properties/geo-pro.dto';
 import { NearProDto } from '@malaz/contracts/dtos/properties/properties/near-pro.dto';
@@ -41,7 +40,6 @@ export class PropertiesGetProvider {
     @Inject('GEO_SERVICE') private readonly geoClient: ClientProxy,
     @Inject('USERS_SERVICE')
     private readonly usersClient: ClientProxy,
-    private readonly i18n: I18nService,
   ) {}
 
   async getProByUser(proId: number, userId: number, role: UserType) {
@@ -86,6 +84,14 @@ export class PropertiesGetProvider {
       throw new NotFoundException('Property not found');
     }
     return property;
+  }
+
+  async getProsCount(userId: number) {
+    return await this.propertyRepository.count({
+      where: {
+        agency: { id: userId },
+      },
+    });
   }
 
   //جلب العقار مع تفاعلاتي عليه
@@ -213,6 +219,7 @@ export class PropertiesGetProvider {
     }
     return properties;
   }
+
   async getProNearMe(nearProDto: NearProDto, userId: number) {
     const result = await this.dataSource.query(
       `
@@ -362,6 +369,7 @@ export class PropertiesGetProvider {
     // await this.cacheManager.set(key, properties);
     return properties;
   }
+
   rangeConditions(minRange?: string, maxRange?: string) {
     if (minRange && maxRange) {
       return Between(parseInt(minRange), parseInt(maxRange));
@@ -371,6 +379,7 @@ export class PropertiesGetProvider {
       return LessThanOrEqual(parseInt(maxRange));
     }
   }
+
   getTopScorePro(limit: number) {
     return this.propertyRepository.find({
       order: {
@@ -387,6 +396,7 @@ export class PropertiesGetProvider {
       select: { owner: { id: true }, agency: { id: true } },
     });
   }
+
   getTranslatedProperty(property: Property, language: Language) {
     if (language == Language.ARABIC) {
       if (property.multi_description)

@@ -1,9 +1,14 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { ReportStatus, ReportTitle } from '@malaz/contracts/utils/enums';
 import { CURRENT_TIMESTAMP } from '@malaz/contracts/utils/constants';
-@Entity()
-export class ReportsMicro {
 
+@Entity('report')
+export class ReportsMicro {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -13,7 +18,7 @@ export class ReportsMicro {
   @Column({ length: 60, nullable: true })
   reason: string; //string
 
-  @Column({ type : 'jsonb' })
+  @Column({ type: 'jsonb' })
   mult_description: Record<string, string>;
 
   @Column({ length: 32 })

@@ -1,12 +1,10 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Property } from '../entities/property.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { PropertiesVoSuViProvider } from './properties-vo-su-vi.provider';
 
-import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import * as console from 'node:console';
-import { AgenciesVoViProvider } from '../../../../users-micro/src/users/providers/agencies-vo-vi.provider';
 import { CreatePropertyDto } from '@malaz/contracts/dtos/properties/properties/create-property.dto';
 import {
   Language,
@@ -15,15 +13,13 @@ import {
 } from '@malaz/contracts/utils/enums';
 import { lastValueFrom, retry, timeout } from 'rxjs';
 import { UsersGetProvider } from '../../../../users-micro/src/users/providers/users-get.provider';
-
+import { PropertiesGetProvider } from './properties-get.provider';
 
 @Injectable()
 export class PropertiesCreateProvider {
   constructor(
-    @InjectRepository(Property)
-    private propertyRepository: Repository<Property>,
     private readonly propertiesVoViProvider: PropertiesVoSuViProvider,
-    private readonly agenciesVoViProvider: AgenciesVoViProvider,
+    private readonly propertiesGetProvider: PropertiesGetProvider,
     private readonly usersGetProvider: UsersGetProvider,
     @Inject('USERS_SERVICE')
     private readonly usersClient: ClientProxy,
@@ -41,11 +37,7 @@ export class PropertiesCreateProvider {
     //اذا مكتب لازم يشترك
     if (user.userType === UserType.AGENCY) {
       //عدد كم عقار له واختار المحدودية
-      const count = await this.propertyRepository.count({
-        where: {
-          agency: { id: userId },
-        },
-      });
+      const count = await this.propertiesGetProvider.getProsCount(userId);
       if (user.plan?.id === 1) {
         throw new UnauthorizedException('Subscripe ! اشترك في خطط المكاتب');
       }
@@ -101,7 +93,10 @@ export class PropertiesCreateProvider {
         newProperty,
         manger,
       );
-      await this.agenciesVoViProvider.chanePropertiesNum(agency.id, 1);
+      this.usersClient.emit('analytics.chanePropertiesNum', {
+        userId: agency.id,
+        value: 1,
+      });
       return newProperty;
     });
     //que
@@ -113,6 +108,7 @@ export class PropertiesCreateProvider {
 
     return result.id;
   }
+
   async createTranslatedProperty(
     property: Property,
     createPropertyDto: CreatePropertyDto,

@@ -1,29 +1,18 @@
 import { Module } from '@nestjs/common';
-
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { I18nSetModule } from '@malaz/contracts/modules/set/i18n-set.module';
 import { OrdersModule } from './orders/orders.module';
 import { PlansModule } from './plans/plans.module';
+import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module';
+import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module';
+import { PropertiesRpcModule } from '@malaz/contracts/modules/rpc/properties-rpc.module';
 
 @Module({
   imports: [
     PlansModule,
     OrdersModule,
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        return {
-          global: true,
-          secret: config.get<string>('JWT_SECRET'),
-          signOptions: { expiresIn: config.get<string>('JWT_EXPIRES_IN') },
-        };
-      },
-    }),
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: `.env`,
-    }),
+    JwtConfigModule,
+    ConfigSetModule,
+    PropertiesRpcModule,
     I18nSetModule,
   ],
 })
