@@ -42,9 +42,9 @@ export class UsersAdController {
     );
   }
 
-  @MessagePattern('userA.get_admin_by_id')
-  getAdminById(@Payload() adminId: number) {
-    return this.usersService.getAdminById(adminId);
+  @MessagePattern('users.getAdminById')
+  getAdminById(@Payload() payload : {id: number}) {
+    return this.usersService.getAdminById(payload.id);
   }
 
   @MessagePattern('users.deleteById')
