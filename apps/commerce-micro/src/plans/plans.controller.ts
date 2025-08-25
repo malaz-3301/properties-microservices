@@ -10,8 +10,9 @@ export class PlansController {
   constructor(private readonly plansService: PlansService) {}
 
   @MessagePattern('plans.create')
-  create(@Payload() payload: { createPlanDto: CreatePlanDto }) {
-    return this.plansService.create(payload.createPlanDto);
+  create(@Payload() createPlanDto: CreatePlanDto) {
+    console.log('mohamelkjdfl');
+    return this.plansService.create(createPlanDto);
   }
 
   @MessagePattern('plans.createBack')
@@ -26,7 +27,7 @@ export class PlansController {
   }
 
   @MessagePattern('plans.findAll')
-  findAll(@Payload() payload: { user: JwtPayloadType }) {
-    return this.plansService.findAll(payload.user.id);
+  findAll(@Payload() payload: { userId: number }) {
+    return this.plansService.findAll(payload.userId);
   }
 }

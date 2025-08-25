@@ -18,6 +18,7 @@ import { UpdateNotificationDto } from '@malaz/contracts/dtos/notification/update
 import { Contract } from '../../users-micro/src/contracts/entities/contract.entity';
 import { NotificationMicro } from './entities/notification-micro.entity';
 import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
 @Injectable()
 export class NotificationsMicroService {
   onModuleInit() {
@@ -37,6 +38,8 @@ export class NotificationsMicroService {
     @Inject(forwardRef(() => ContractsService))
     private readonly contractService: ContractsService,
     private i18nService: I18nService,
+    @Inject('USERS_SERVICE')
+    private readonly userClient: ClientProxy,
     @Inject('SMS_SERVICE') private readonly client2: ClientProxy,
   ) {}
   private readonly logger = new Logger(NotificationsMicroService.name);
@@ -57,11 +60,20 @@ export class NotificationsMicroService {
       readAt: null,
       property: { id: createNotificationDto.propertyId },
     });
-    const user = await this.usersGetProvider.findById(userId);
+    const user = await lastValueFrom(
+      await this.userClient.send('users.findById', { id: userId }),
+    );
+    //  this.usersGetProvider.findById(userId);
     newNotification.usre_language_message =
-      await this.usersGetProvider.translate(
-        user.language,
-        createNotificationDto.message,
+      // await this.usersGetProvider.translate(
+      //   user.language,
+      //   createNotificationDto.message,
+      // );
+      await lastValueFrom(
+        await this.userClient.send('translate.translate', {
+          language: user.language,
+          text: createNotificationDto.message,
+        }),
       );
     await this.sendNotificationToDevice(
       user.token,

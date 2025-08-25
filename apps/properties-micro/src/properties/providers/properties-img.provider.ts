@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -17,6 +18,7 @@ import * as jpeg from 'jpeg-js';
 import * as fs from 'node:fs';
 import * as fileType from 'file-type';
 import { UserType } from '@malaz/contracts/utils/enums';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class PropertiesImgProvider {
@@ -91,7 +93,12 @@ export class PropertiesImgProvider {
       userId,
       UserType.Owner,
     );
-
+    if (!pro) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
+    }
     try {
       // قراءة الملف من القرص
       const buffer = fs.readFileSync(file.path);
@@ -127,6 +134,12 @@ export class PropertiesImgProvider {
       userId,
       UserType.Owner,
     );
+    if (!pro) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
+    }
     //بقي الحذف لسا
     const length = pro.propertyImages?.length + filenames.length;
     if (length > 8) {
@@ -159,6 +172,12 @@ export class PropertiesImgProvider {
       userId,
       UserType.Owner,
     );
+    if (!pro) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
+    }
     if (!pro.propertyImages.includes(imageName)) {
       throw new BadRequestException('User does not have image');
     }
@@ -179,6 +198,12 @@ export class PropertiesImgProvider {
       userId,
       UserType.Owner,
     );
+    if (!pro) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
+    }
     //مقارنة المفاتيح المتشابهة لحذف القيم
     const panoramaNamesParse = JSON.parse((pro.panoramaImages as any) || {});
     const forDelete: string[] = panoramaNames.reduce((acc: string[], name) => {

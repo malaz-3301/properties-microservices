@@ -11,7 +11,7 @@ import {
   PropertyStatus,
   UserType,
 } from '@malaz/contracts/utils/enums';
-import { lastValueFrom, retry, timeout } from 'rxjs';
+import { firstValueFrom, lastValueFrom, retry, timeout } from 'rxjs';
 import { UsersGetProvider } from '../../../../users-micro/src/users/providers/users-get.provider';
 import { PropertiesGetProvider } from './properties-get.provider';
 
@@ -23,6 +23,8 @@ export class PropertiesCreateProvider {
     private readonly usersGetProvider: UsersGetProvider,
     @Inject('USERS_SERVICE')
     private readonly usersClient: ClientProxy,
+    @Inject('TRANSLATE_SERVICE')
+    private readonly translateClient: ClientProxy,
     private dataSource: DataSource,
     @Inject('GEO_SERVICE') private readonly geoClient: ClientProxy,
   ) {}
@@ -73,7 +75,7 @@ export class PropertiesCreateProvider {
     const propertyCommissionRate =
       createPropertyDto.price * (agencyInfo.agencyCommissionRate ?? 1);
     const result = await this.dataSource.transaction(async (manger) => {
-      const newProperty = manger.create(Property, {
+      let newProperty = manger.create(Property, {
         ...createPropertyDto,
         firstImage: 'https://cdn-icons-png.flaticon.com/512/4757/4757668.png',
         owner: { id: user.id },
@@ -85,7 +87,13 @@ export class PropertiesCreateProvider {
       if (user.id === agency.id) {
         newProperty.status = PropertyStatus.ACCEPTED;
       }
-      await this.createTranslatedProperty(newProperty, createPropertyDto);
+      // await this.createTranslatedProperty(newProperty, createPropertyDto);
+      newProperty = await lastValueFrom(
+        await this.translateClient.send('translate.createTranslatedProperty', {
+          property: newProperty,
+          propertyDto: createPropertyDto,
+        }),
+      );
       await manger.save(Property, newProperty);
       console.log('ddddddddddddddddddddddddddddddd');
 
@@ -107,30 +115,5 @@ export class PropertiesCreateProvider {
     });
 
     return result.id;
-  }
-
-  async createTranslatedProperty(
-    property: Property,
-    createPropertyDto: CreatePropertyDto,
-  ) {
-    property.multi_description = { ar: createPropertyDto.description };
-    console.log(createPropertyDto.description);
-    property.multi_description['en'] = await this.usersGetProvider.translate(
-      Language.ENGLISH,
-      createPropertyDto.description,
-    );
-    property.multi_description['de'] = await this.usersGetProvider.translate(
-      Language.Germany,
-      createPropertyDto.description,
-    );
-    property.multi_title = { ar: createPropertyDto.title };
-    property.multi_title['en'] = await this.usersGetProvider.translate(
-      Language.ENGLISH,
-      createPropertyDto.title,
-    );
-    property.multi_title['de'] = await this.usersGetProvider.translate(
-      Language.Germany,
-      createPropertyDto.title,
-    );
   }
 }

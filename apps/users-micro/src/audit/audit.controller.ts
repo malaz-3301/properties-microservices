@@ -1,6 +1,6 @@
 import { Controller, Param, ParseIntPipe } from '@nestjs/common';
 import { AuditService } from './audit.service';
-import { MessagePattern } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('audit')
 export class AuditController {
@@ -12,7 +12,7 @@ export class AuditController {
   }
 
   @MessagePattern('users-audit.findOne')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.auditService.findOne(id);
+  findOne(@Payload() payload: { id: number }) {
+    return this.auditService.findOne(payload.id);
   }
 }

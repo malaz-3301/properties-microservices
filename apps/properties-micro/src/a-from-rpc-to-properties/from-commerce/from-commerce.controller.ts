@@ -13,6 +13,7 @@ export class FromCommerceController {
   @MessagePattern('properties.getProsCount')
   async handleGetProsCount(@Payload() payload: { userId: number }) {
     const { userId } = payload;
+    console.log('getProsCount')
     return this.propertiesGetProvider.getProsCount(userId);
   }
 

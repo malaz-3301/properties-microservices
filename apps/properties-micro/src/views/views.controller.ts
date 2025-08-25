@@ -9,10 +9,8 @@ export class ViewsController {
   constructor(private readonly viewsService: ViewsService) {}
 
   // إنشاء view لمادة معينة
-  @MessagePattern('view.create')
-  async create(
-    @Payload() payload: { proId: number; user: JwtPayloadType },
-  ) {
-    return this.viewsService.create(payload.proId, payload.user.id);
+  @MessagePattern('views.create')
+  async create(@Payload() payload: { proId: number; userId: number }) {
+    return this.viewsService.create(payload.proId, payload.userId);
   }
 }

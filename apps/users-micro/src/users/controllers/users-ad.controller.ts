@@ -18,19 +18,28 @@ export class UsersAdController {
     return this.usersService.getAllPending(query);
   }
 
-  @MessagePattern('userA.get_all_admins')
+  @MessagePattern('users.getAllAdmins')
   getAllAdmins(@Payload() query: FilterUserDto) {
     return this.usersService.getAllAdmins(query);
   }
 
-  @MessagePattern('userA.upgrade_user')
-  upgradeUser(@Payload() userId: number) {
-    return this.usersService.upgradeUser(userId);
+  @MessagePattern('users.upgradeUser')
+  upgradeUser(@Payload() payload: { userId: number }) {
+    return this.usersService.upgradeUser(payload.userId);
   }
 
-  @MessagePattern('userA.update_user_by_id')
-  updateUserById(@Payload() data: { id: number; dto: UpdateUserByAdminDto }) {
-    return this.usersService.updateUserById(data.id, data.dto);
+  @MessagePattern('users.updateUserById')
+  updateUserById(
+    @Payload()
+    data: {
+      userId: number;
+      updateUserByAdminDto: UpdateUserByAdminDto;
+    },
+  ) {
+    return this.usersService.updateUserById(
+      data.userId,
+      data.updateUserByAdminDto,
+    );
   }
 
   @MessagePattern('userA.get_admin_by_id')
@@ -38,8 +47,8 @@ export class UsersAdController {
     return this.usersService.getAdminById(adminId);
   }
 
-  @MessagePattern('userA.delete_user_by_id')
-  deleteById(@Payload() data: { id: number; message: string }) {
-    return this.usersService.deleteUserById(data.id, data.message);
+  @MessagePattern('users.deleteById')
+  deleteById(@Payload() data: { userId: number; message: string }) {
+    return this.usersService.deleteUserById(data.userId, data.message);
   }
 }

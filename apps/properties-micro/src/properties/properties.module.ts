@@ -22,10 +22,13 @@ import { PropertiesOnController } from './controllers/properties-on.controller';
 import { PropertiesAgController } from './controllers/properties-ag.controller';
 import { PropertiesAdController } from './controllers/properties-ad.controller';
 import { UsersRpcModule } from '@malaz/contracts/modules/rpc/users-rpc.module';
+import { TranslateRpcModule } from '@malaz/contracts/modules/rpc/translate-rpc.module';
 
 @Module({
   imports: [
     UsersRpcModule,
+    TranslateRpcModule,
+    TranslateRpcModule,
     TypeOrmModule.forFeature([Property, PriorityRatio]),
     forwardRef(() => AuthMicroModule),
     UsersModule,

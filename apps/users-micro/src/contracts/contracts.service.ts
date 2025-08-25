@@ -17,9 +17,7 @@ import { UpdateContractDto } from '@malaz/contracts/dtos/users/contracts/update-
 export class ContractsService {
   constructor(
     @InjectRepository(Contract)
-    private readonly contractRepository: Repository<Contract>,
-    private readonly userService: UsersService,
-    private readonly notificationsService: NotificationsMicroService ,
+    private readonly contractRepository: Repository<Contract> ,
   ) {}
   async create(userId: number, createContractDto: CreateContractDto) {
     const isActive = await this.contractRepository.findOne({

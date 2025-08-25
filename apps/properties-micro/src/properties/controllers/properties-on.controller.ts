@@ -17,59 +17,60 @@ export class PropertiesOnController {
     @Payload()
     payload: {
       createPropertyDto: CreatePropertyDto;
-      owner: JwtPayloadType;
+      owner: number;
     },
   ) {
+    console.log('mohammed12');
     return this.propertiesService.create(
       payload.createPropertyDto,
-      payload.owner.id,
+      payload.owner,
     );
   }
 
   // جلب عقاراتي
-  @MessagePattern('properties.owner.getMy')
+  @MessagePattern('properties.getOwnerPros')
   async getOwnerPros(
-    @Payload() payload: { owner: JwtPayloadType; query: FilterPropertyDto },
+    @Payload() payload: { ownerId: number; query: FilterPropertyDto },
   ) {
     return this.propertiesService.getAll(
       payload.query,
-      payload.owner.id,
-      payload.owner.id,
+      payload.ownerId,
+      payload.ownerId,
       undefined,
     );
   }
 
   // تحديث عقاري
-  @MessagePattern('properties.owner.update')
+  @MessagePattern('properties.updateOwnerPro')
   async updateOwnerPro(
     @Payload()
     payload: {
       proId: number;
-      owner: JwtPayloadType;
+      ownerId: number;
       updatePropertyDto: UpdatePropertyDto;
     },
   ) {
     return this.propertiesService.updateOwnerPro(
       payload.proId,
-      payload.owner.id,
+      payload.ownerId,
       payload.updatePropertyDto,
     );
   }
 
   // حذف عقاري
-  @MessagePattern('properties.owner.delete')
+  @MessagePattern('properties.deleteOwnerPro')
   async deleteOwnerPro(
     @Payload()
     payload: {
       proId: number;
-      user: JwtPayloadType;
-      deleteUserDto: DeleteUserDto;
+      userId: number;
+      password: string;
     },
   ) {
     return this.propertiesService.deleteOwnerPro(
       payload.proId,
-      payload.user.id,
-      payload.deleteUserDto.password,
+      payload.userId,
+      payload.password,
     );
   }
 
@@ -82,7 +83,7 @@ export class PropertiesOnController {
     }*/
 
   // رفع عدة صور
-  @MessagePattern('properties.upload.multiple')
+  @MessagePattern('properties.uploadMultiImg')
   async uploadMultiImg(
     @Payload()
     payload: {
@@ -99,7 +100,7 @@ export class PropertiesOnController {
   }
 
   // رفع بانوراما متعددة
-  @MessagePattern('properties.upload.panorama')
+  @MessagePattern('properties.uploadMultiPanorama')
   async uploadMultiPanorama(
     @Payload()
     payload: {

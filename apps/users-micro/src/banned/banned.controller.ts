@@ -20,7 +20,7 @@ export class BannedController {
   }
 
   @MessagePattern('users-banned.remove')
-  remove(@Payload() id: number) {
-    return this.bannedService.remove(+id);
+  remove(@Payload() payload : {id: number}) {
+    return this.bannedService.remove(payload.id);
   }
 }

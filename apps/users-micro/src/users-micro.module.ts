@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UsersMicroController } from './users-micro.controller';
 import { UsersMicroService } from './users-micro.service';
 import { UsersModule } from './users/users.module';
@@ -23,7 +23,7 @@ import { FromRpcToUsersModule } from './a-from-rpc-to-users/from-rpc-to-users.mo
     GeoQueRpcModule,
     GlobalCacheModule,
     AuditModule,
-    ContractsModule,
+    forwardRef(()=>ContractsModule),
     AuditModule,
     GlobalCacheModule,
     UsersModule,

@@ -36,6 +36,7 @@ export class ToUsersUsersController {
 
   @Post('register')
   async register(@Body() registerUserDto: RegisterUserDto) {
+    console.log('fklsd');
     return this.usersClient.send('users.register', registerUserDto).pipe(
       retry(2),
       timeout(5000),

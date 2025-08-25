@@ -9,8 +9,8 @@ export class ReportsMicroController {
 
   // إنشاء تقرير
   @MessagePattern('reports.create')
-  async report(@Payload() dto: CreateReportDto) {
-    return this.reportsMicroService.report(dto);
+  async report(@Payload() createReportDto: CreateReportDto) {
+    return this.reportsMicroService.report(createReportDto);
   }
 
   // جلب كل التقارير

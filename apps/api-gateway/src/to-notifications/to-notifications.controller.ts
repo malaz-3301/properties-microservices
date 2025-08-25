@@ -30,31 +30,42 @@ export class ToNotificationsController {
     @Body('id', ParseIntPipe) id: number,
     @CurrentUser() user: JwtPayloadType,
   ) {
-    // return this.notificationsService.markAsRead(user.id, id);
+    return this.notificationsClient.send('notifications.markAsRead', {
+      id: id,
+      userId: user.id,
+    });
   }
 
   @Post('mark_all_as_read')
   @UseGuards(AuthGuard)
   markAllAsRead(@CurrentUser() user: JwtPayloadType) {
-    //return this.notificationsService.markAllAsRead(user.id);
+    return this.notificationsClient.send('notifications.markAllAsRead', {
+      userId: user.id,
+    });
   }
 
   @Get('unread_notifications')
   @UseGuards(AuthGuard)
   getUnreadNotification(@CurrentUser() user: JwtPayloadType) {
-    // return this.notificationsService.getUnreadNotifications(user.id);
+    return this.notificationsClient.send('notifications.unread', {
+      userId: user.id,
+    });
   }
 
   @Get('read_notification')
   @UseGuards(AuthGuard)
   getReadNotification(@CurrentUser() user: JwtPayloadType) {
-    // return this.notificationsService.getReadNotifications(user.id);
+    return this.notificationsClient.send('notifications.read', {
+      userId: user.id,
+    });
   }
 
   @Get('all_my_notifications')
   @UseGuards(AuthGuard)
   getMyNotifications(@CurrentUser() user: JwtPayloadType) {
-    // return this.notificationsService.getMyNotifications(user.id);
+    return this.notificationsClient.send('notifications.allMy', {
+      userId: user.id,
+    });
   }
 
   @Post()
@@ -63,19 +74,24 @@ export class ToNotificationsController {
     @Body() createNotificationDto: CreateNotificationDto,
     @CurrentUser() user: JwtPayloadType,
   ) {
-    // return this.notificationsService.create(createNotificationDto, user.id);
+    return this.notificationsClient.send('notifications.create', {
+      createNotificationDto,
+      userId: user.id,
+    });
   }
 
   @Get()
   @UseGuards(AuthGuard)
   findAll() {
-    //return this.notificationsService.findAll();
+    return this.notificationsClient.send('notifications.findAll', {});
   }
 
   @Get(':id')
   @UseGuards(AuthGuard)
   findOne(@Param('id', ParseIntPipe) id: number) {
-    // return this.notificationsService.findOne(id);
+    return this.notificationsClient.send('notifications.findOne', {
+      id: id,
+    });
   }
 
   @Patch(':id')
@@ -84,12 +100,17 @@ export class ToNotificationsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateNotificationDto: UpdateNotificationDto,
   ) {
-    // return this.notificationsService.update(id, updateNotificationDto);
+    return this.notificationsClient.send('notifications.update', {
+      id: id,
+      updateNotificationDto,
+    });
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard)
   remove(@Param('id', ParseIntPipe) id: number) {
-    // return this.notificationsService.remove(id);
+    return this.notificationsClient.send('notifications.remove', {
+      id: id,
+    });
   }
 }

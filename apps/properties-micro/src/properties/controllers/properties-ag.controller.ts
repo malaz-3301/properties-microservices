@@ -23,13 +23,13 @@ export class PropertiesAgController {
   // جلب العقارات المعلقة للوكالة
   @MessagePattern('properties.getPendingAgency')
   async getAllPendingAgency(
-    @Payload() payload: { query: FilterPropertyDto; agency: JwtPayloadType },
+    @Payload() payload: { query: FilterPropertyDto; agencyId: number },
   ) {
     return this.propertiesService.getAllPendingAgency(
       payload.query,
-      payload.agency.id,
+      payload.agencyId,
       undefined,
-      payload.agency.id,
+      payload.agencyId,
     );
   }
 
@@ -39,13 +39,13 @@ export class PropertiesAgController {
     @Payload()
     payload: {
       proId: number;
-      agency: JwtPayloadType;
+      agencyId: number;
       editProAgencyDto: EditProAgencyDto;
     },
   ) {
     return this.propertiesService.updateAgencyPro(
       payload.proId,
-      payload.agency.id,
+      payload.agencyId,
       payload.editProAgencyDto,
     );
   }
@@ -53,25 +53,31 @@ export class PropertiesAgController {
   // قبول عقار من الوكالة
   @MessagePattern('properties.acceptAgency')
   async acceptAgencyPro(
-    @Payload() payload: { proId: number; agency: JwtPayloadType },
+    @Payload() payload: { proId: number; agencyId: number },
   ) {
     return this.propertiesService.acceptAgencyPro(
       payload.proId,
-      payload.agency.id,
+      payload.agencyId,
     );
   }
 
   // رفض عقار من الوكالة
   @MessagePattern('properties.rejectAgency')
-  async rejectAgencyPro(
-    @Payload() payload: { id: number; agency: JwtPayloadType },
-  ) {
-    return this.propertiesService.rejectAgencyPro(
-      payload.id,
-      payload.agency.id,
-    );
+  async rejectAgencyPro(@Payload() payload: { id: number; agencyId: number }) {
+    return this.propertiesService.rejectAgencyPro(payload.id, payload.agencyId);
   }
 
+  @MessagePattern('properties.getAgencyPros')
+  async getAgencyPros(
+    @Payload() payload: { query: FilterPropertyDto; agencyId: number },
+  ) {
+    return this.propertiesService.getAll(
+      payload.query,
+      payload.agencyId,
+      undefined,
+      payload.agencyId,
+    );
+  }
   /*
   // حذف عقار بواسطة الوكالة — كانت معلّقة في الكود الأصلي (DELETE /delete)
   // لو أردت تفعيلها: اعطها routing key مناسب مثل 'properties.agency.delete'

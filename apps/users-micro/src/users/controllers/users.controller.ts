@@ -20,27 +20,27 @@ export class UsersController {
     return this.usersService.register_back_users();
   }
 
-  @MessagePattern('users.verify_otp')
+  @MessagePattern('users.otpVerify')
   otpVerify(@Payload() data: { code: string; id: number }) {
     return this.usersService.otpVerify(data.code, data.id);
   }
 
-  @MessagePattern('users.resend_otp')
-  otpReSend(@Payload() id: number) {
-    return this.usersService.otpReSend(id);
+  @MessagePattern('users.otpReSend')
+  otpReSend(@Payload() payload: { id: number }) {
+    return this.usersService.otpReSend(payload.id);
   }
 
-  @MessagePattern('users.otp_timer')
-  otpTimer(@Payload() id: number) {
-    return this.usersService.otpTimer(id);
+  @MessagePattern('users.otpTimer')
+  otpTimer(@Payload() payload: { id: number }) {
+    return this.usersService.otpTimer(payload.id);
   }
 
-  @MessagePattern('users.update_me')
-  updateMe(@Payload() data: { userId: number; dto: UpdateUserDto }) {
-    return this.usersService.updateMe(data.userId, data.dto);
+  @MessagePattern('users.updateMe')
+  updateMe(@Payload() data: { userId: number; updateUserDto: UpdateUserDto }) {
+    return this.usersService.updateMe(data.userId, data.updateUserDto);
   }
 
-  @MessagePattern('users.delete_me')
+  @MessagePattern('users.deleteMe')
   deleteMe(@Payload() data: { userId: number; password: string }) {
     return this.usersService.deleteMe(data.userId, data.password);
   }
@@ -60,18 +60,18 @@ export class UsersController {
     return this.usersService.setUserPlan(data.userId, data.planId);
   }
 
-  @MessagePattern('users.get_all_agency')
+  @MessagePattern('users.getAllAgency')
   getAllAgency(@Payload() query: FilterUserDto) {
     return this.usersService.getAllAgency(query);
   }
 
-  @MessagePattern('users.get_one_agency')
-  getOneAgency(@Payload() agencyId: number) {
-    return this.usersService.getOneAgency(agencyId);
+  @MessagePattern('users.getOneAgency')
+  getOneAgency(@Payload() payload: { agencyId: number }) {
+    return this.usersService.getOneAgency(payload.agencyId);
   }
 
-  @MessagePattern('users.get_user_pros')
-  getUserProsById(@Payload() userId: number) {
-    return this.usersService.getUserProsById(userId);
+  @MessagePattern('users.getUserProsById')
+  getUserProsById(@Payload() payload: { userId: number }) {
+    return this.usersService.getUserProsById(payload.userId);
   }
 }

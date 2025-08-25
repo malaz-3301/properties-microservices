@@ -37,7 +37,7 @@ export class ToPropertiesAgPropertiesController {
     @CurrentUser() agency: JwtPayloadType,
   ) {
     return this.propertiesClient
-      .send('property.getAgencyPros', { query, agencyId: agency.id })
+      .send('properties.getAgencyPros', { query, agencyId: agency.id })
       .pipe(retry(2), timeout(5000));
   }
 
@@ -50,7 +50,7 @@ export class ToPropertiesAgPropertiesController {
     @CurrentUser() agency: JwtPayloadType,
   ) {
     return this.propertiesClient
-      .send('property.getAllPendingAgency', { query, agencyId: agency.id })
+      .send('properties.getPendingAgency', { query, agencyId: agency.id })
       .pipe(retry(2), timeout(5000));
   }
 
@@ -64,10 +64,10 @@ export class ToPropertiesAgPropertiesController {
     @Body() editProAgencyDto: EditProAgencyDto,
   ) {
     return this.propertiesClient
-      .send('property.updateAgencyPro', {
+      .send('properties.updateAgency', {
         proId,
         agencyId: agency.id,
-        dto: editProAgencyDto,
+        editProAgencyDto,
       })
       .pipe(retry(2), timeout(5000));
   }
@@ -81,7 +81,7 @@ export class ToPropertiesAgPropertiesController {
     @CurrentUser() agency: JwtPayloadType,
   ) {
     return this.propertiesClient
-      .send('property.acceptAgencyPro', { proId, agencyId: agency.id })
+      .send('properties.acceptAgency', { proId, agencyId: agency.id })
       .pipe(retry(2), timeout(5000));
   }
 
@@ -94,7 +94,7 @@ export class ToPropertiesAgPropertiesController {
     @CurrentUser() agency: JwtPayloadType,
   ) {
     return this.propertiesClient
-      .send('property.rejectAgencyPro', { id, agencyId: agency.id })
+      .send('properties.rejectAgency', { id, agencyId: agency.id })
       .pipe(retry(2), timeout(5000));
   }
 

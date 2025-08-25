@@ -1,4 +1,5 @@
 import {
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -16,9 +17,13 @@ import {
 import { UsersGetProvider } from '../../../../users-micro/src/users/providers/users-get.provider';
 import { UpdatePropertyDto } from '@malaz/contracts/dtos/properties/properties/update-property.dto';
 import { EditProAgencyDto } from '@malaz/contracts/dtos/properties/properties/edit-pro-agency.dto';
-import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
+import {
+  ClientProxy,
+  RmqRecordBuilder,
+  RpcException,
+} from '@nestjs/microservices';
 import { I18nService } from 'nestjs-i18n';
-import { lastValueFrom, retry, timeout } from 'rxjs';
+import { firstValueFrom, lastValueFrom, retry, timeout } from 'rxjs';
 
 @Injectable()
 export class PropertiesUpdateProvider {
@@ -28,6 +33,8 @@ export class PropertiesUpdateProvider {
     private readonly propertiesGetProvider: PropertiesGetProvider,
     @Inject('USERS_SERVICE')
     private readonly usersClient: ClientProxy,
+    @Inject('TRANSLATE_SERVICE')
+    private readonly translateClient: ClientProxy,
     private usersGetProvider: UsersGetProvider, // محمد شيل هي
     @Inject('SMS_SERVICE') private readonly client2: ClientProxy,
     private i18n: I18nService,
@@ -38,7 +45,7 @@ export class PropertiesUpdateProvider {
     ownerId: number,
     updatePropertyDto: UpdatePropertyDto,
   ) {
-    const property = await this.propertiesGetProvider.getProByUser(
+    let property = await this.propertiesGetProvider.getProByUser(
       proId,
       ownerId,
       UserType.Owner,
@@ -49,9 +56,18 @@ export class PropertiesUpdateProvider {
       );
     }
     if (!property) {
-      throw new NotFoundException();
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
     }
-    await this.updateTranslatedProperty(property, updatePropertyDto);
+    // await this.updateTranslatedProperty(property, updatePropertyDto);
+    property = await lastValueFrom(
+      await this.translateClient.send('translate.updateTranslatedProperty', {
+        property: property,
+        propertyDto: updatePropertyDto,
+      }),
+    );
     return this.propertyRepository.save({ ...property, ...updatePropertyDto });
   }
 
@@ -60,12 +76,18 @@ export class PropertiesUpdateProvider {
     agencyId: number,
     editProAgencyDto: EditProAgencyDto,
   ) {
-    const property = await this.propertiesGetProvider.getProByUser(
+    let property = await this.propertiesGetProvider.getProByUser(
       proId,
       agencyId,
       UserType.AGENCY,
     );
-    await this.updateTranslatedProperty(property, editProAgencyDto);
+    // await this.updateTranslatedProperty(property, editProAgencyDto);
+    property = await lastValueFrom(
+      await this.translateClient.send('translate.updateTranslatedProperty', {
+        property: property,
+        propertyDto: editProAgencyDto,
+      }),
+    );
     return this.propertyRepository.save({ ...property, ...editProAgencyDto });
   }
 
@@ -75,6 +97,12 @@ export class PropertiesUpdateProvider {
       agencyId,
       UserType.AGENCY,
     );
+    if (!property) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
+    }
     const updatedProperty = await this.propertyRepository.update(proId, {
       status: PropertyStatus.ACCEPTED,
     });
@@ -105,6 +133,12 @@ export class PropertiesUpdateProvider {
       agencyId,
       UserType.AGENCY,
     );
+    if (!property) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
+    }
     const updatedProperty = await this.propertyRepository.update(proId, {
       status: PropertyStatus.Rejected,
     });
@@ -134,37 +168,15 @@ export class PropertiesUpdateProvider {
   }
 
   async updateAdminPro(proId: number, update: any) {
-    const property = await this.propertiesGetProvider.findById(proId);
-    await this.updateTranslatedProperty(property, update);
+    let property = await this.propertiesGetProvider.findById(proId);
+    // await this.updateTranslatedProperty(property, update);
+    property = await lastValueFrom(
+      await this.translateClient.send('translate.updateTranslatedProperty', {
+        property: property,
+        propertyDto: update,
+      }),
+    );
     return this.propertyRepository.save({ ...property, ...update });
-  }
-
-  async updateTranslatedProperty(
-    property: Property,
-    updatePropertyDto: UpdatePropertyDto | EditProAgencyDto,
-  ) {
-    if (updatePropertyDto.description) {
-      property.multi_description = { ar: updatePropertyDto.description };
-      property.multi_description['en'] = await this.usersGetProvider.translate(
-        Language.ENGLISH,
-        updatePropertyDto.description,
-      );
-      property.multi_description['de'] = await this.usersGetProvider.translate(
-        Language.Germany,
-        updatePropertyDto.description,
-      );
-    }
-    if (updatePropertyDto.title) {
-      property.multi_title = { ar: updatePropertyDto.title };
-      property.multi_title['en'] = await this.usersGetProvider.translate(
-        Language.ENGLISH,
-        updatePropertyDto.title,
-      );
-      property.multi_title['de'] = await this.usersGetProvider.translate(
-        Language.Germany,
-        updatePropertyDto.title,
-      );
-    }
   }
 
   async markCommissionPaid(proId: number) {

@@ -10,12 +10,14 @@ import { I18nSetModule } from '@malaz/contracts/modules/set/i18n-set.module';
 import { NotificationMicro } from './entities/notification-micro.entity';
 import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module';
 import { FromRpcToNotificationsModule } from './a-from-rpc-to-notifications/from-rpc-to-notifications.module';
+import { UsersMicroModule } from 'apps/users-micro/src/users-micro.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([NotificationMicro]),
     forwardRef(() => ContractsModule),
     forwardRef(() => AuthMicroModule),
+    forwardRef(() => UsersMicroModule),
     UsersModule,
     JwtConfigModule,
     ConfigModule,

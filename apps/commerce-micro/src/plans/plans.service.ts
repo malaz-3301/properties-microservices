@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Plan } from './entities/plan.entity';
@@ -18,12 +23,23 @@ export class PlansService {
     private readonly usersGetProvider: UsersGetProvider, // محمد شيل هي
     @Inject('USERS_SERVICE')
     private readonly usersClient: ClientProxy,
+    @Inject('PROPERTIES_SERVICE')
+    private readonly propertyClient: ClientProxy,
+    @Inject('TRANSLATE_SERVICE')
+    private readonly translateClient: ClientProxy,
     private dataSource: DataSource,
   ) {}
 
   async create(createPlanDto: CreatePlanDto) {
-    const plan = this.planRepository.create(createPlanDto);
-    await this.createAndUpdatePlan(plan, createPlanDto);
+    let plan = this.planRepository.create(createPlanDto);
+    console.log('mohammed plan');
+    plan = await lastValueFrom(
+      await this.translateClient.send('translate.createAndUpdatePlan', {
+        plan: plan,
+        planDto: createPlanDto,
+      }),
+    );
+    // await this.createAndUpdatePlan(plan, createPlanDto);
     return this.planRepository.save(plan);
   }
 
@@ -78,15 +94,22 @@ export class PlansService {
   }
 
   async update(id: number, updatePlanDto: UpdatePlanDto) {
-    const plan = await this.planRepository.findOneBy({ id: id });
+    let plan = await this.planRepository.findOneBy({ id: id });
     if (!plan) {
       throw new NotFoundException();
     }
-    await this.createAndUpdatePlan(plan, updatePlanDto);
+    // await this.createAndUpdatePlan(plan, updatePlanDto);
+    plan = await lastValueFrom(
+      await this.translateClient.send('translate.createAndUpdatePlan', {
+        plan: plan,
+        planDto: updatePlanDto,
+      }),
+    );
     return this.planRepository.save({ ...plan, ...updatePlanDto });
   }
 
   async findAll(userId: number) {
+    console.log('findall');
     const user = await lastValueFrom(
       this.usersClient
         .send('users.findById', { id: userId })
@@ -95,7 +118,7 @@ export class PlansService {
 
     //ارجاع الخطة اذا منتهية
     const count = await lastValueFrom(
-      this.usersClient
+      this.propertyClient
         .send('properties.getProsCount', { userId })
         .pipe(retry(2), timeout(5000)),
     );
@@ -109,39 +132,15 @@ export class PlansService {
       //شيل بس الـ Free
       where = { id: Not(In([1, planId])) };
     }
-    const plans = await this.planRepository.find({
+    let plans = await this.planRepository.find({
       where: where,
     });
-    for (let i = 0; i < plans.length; i++) {
-      this.getTranslatedPlan(plans[i], user.language);
-    }
+    plans = await lastValueFrom(
+      await this.translateClient.send('translate.getTranslatedPlans', {
+        plan: plans,
+        language: user.language,
+      }),
+    );
     return plans;
-  }
-
-  getTranslatedPlan(plan: Plan, language: Language) {
-    if (language == Language.ARABIC) {
-      plan['description'] = plan.multi_description['ar'];
-    } else if (language == Language.ENGLISH) {
-      plan['description'] = plan.multi_description['en'];
-    } else {
-      plan['description'] = plan.multi_description['de'];
-    }
-  }
-
-  async createAndUpdatePlan(
-    plan: Plan,
-    createPlanDto: CreatePlanDto | UpdatePlanDto,
-  ) {
-    if (createPlanDto.description) {
-      plan.multi_description = { ar: createPlanDto.description };
-      plan.multi_description['en'] = await this.usersGetProvider.translate(
-        Language.ENGLISH,
-        createPlanDto.description,
-      );
-      plan.multi_description['de'] = await this.usersGetProvider.translate(
-        Language.Germany,
-        createPlanDto.description,
-      );
-    }
   }
 }

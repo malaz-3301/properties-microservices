@@ -34,7 +34,7 @@ export class ToCommerceOrdersController {
     @CurrentUser() user: JwtPayloadType,
   ) {
     return this.commerceClient
-      .send('commerce.createPlanStripe', {
+      .send('orders.createPlanStripe', {
         createPlanOrderDto,
         userId: user.id,
       })
@@ -69,7 +69,7 @@ export class ToCommerceOrdersController {
   ) {
     const body = req.body;
     return this.commerceClient
-      .send('commerce.createHook', { body, signature })
+      .send('orders.createHook', { body, signature })
       .pipe(
         retry(2),
         timeout(5000),
@@ -82,7 +82,7 @@ export class ToCommerceOrdersController {
   @Post('info')
   info(@Body() spaceRemitDto: SpaceRemitDto) {
     return this.commerceClient
-      .send('commerce.getPaymentInfo', spaceRemitDto)
+      .send('orders.getPaymentInfo', spaceRemitDto)
       .pipe(
         retry(2),
         timeout(5000),

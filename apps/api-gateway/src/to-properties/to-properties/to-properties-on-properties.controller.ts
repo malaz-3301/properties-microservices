@@ -13,13 +13,13 @@ import {
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { AuthGuard } from '@malaz/contracts/guards/auth.guard';
-import { CreatePropertyDto } from '@malaz/contracts/dtos/properties/properties/create-property.dto';
 import { CurrentUser } from '@malaz/contracts/decorators/current-user.decorator';
 import { JwtPayloadType } from '@malaz/contracts/utils/constants';
 import { retry, timeout } from 'rxjs/operators';
+import { DeleteUserDto } from '@malaz/contracts/dtos/users/users/delete-user.dto';
+import { CreatePropertyDto } from '@malaz/contracts/dtos/properties/properties/create-property.dto';
 import { FilterPropertyDto } from '@malaz/contracts/dtos/properties/properties/filter-property.dto';
 import { UpdatePropertyDto } from '@malaz/contracts/dtos/properties/properties/update-property.dto';
-import { DeleteUserDto } from '@malaz/contracts/dtos/users/users/delete-user.dto';
 
 @Controller('properties-on')
 export class ToPropertiesOnPropertiesController {
@@ -34,8 +34,12 @@ export class ToPropertiesOnPropertiesController {
     @Body() createPropertyDto: CreatePropertyDto,
     @CurrentUser() owner: JwtPayloadType,
   ) {
+    console.log('mohammed321');
     return this.propertiesClient
-      .send('property.create', { dto: createPropertyDto, ownerId: owner.id })
+      .send('properties.create', {
+        createPropertyDto,
+        owner: owner.id,
+      })
       .pipe(retry(2), timeout(5000));
   }
 
@@ -46,7 +50,7 @@ export class ToPropertiesOnPropertiesController {
     @Query() query: FilterPropertyDto,
   ) {
     return this.propertiesClient
-      .send('property.getOwnerPros', { query, ownerId: owner.id })
+      .send('properties.getOwnerPros', { query, ownerId: owner.id })
       .pipe(retry(2), timeout(5000));
   }
 
@@ -58,10 +62,10 @@ export class ToPropertiesOnPropertiesController {
     @Body() updatePropertyDto: UpdatePropertyDto,
   ) {
     return this.propertiesClient
-      .send('property.updateOwnerPro', {
+      .send('properties.updateOwnerPro', {
         proId,
         ownerId: owner.id,
-        dto: updatePropertyDto,
+        updatePropertyDto,
       })
       .pipe(retry(2), timeout(5000));
   }
@@ -74,7 +78,7 @@ export class ToPropertiesOnPropertiesController {
     @CurrentUser() user: JwtPayloadType,
   ) {
     return this.propertiesClient
-      .send('property.deleteOwnerPro', {
+      .send('properties.deleteOwnerPro', {
         proId,
         userId: user.id,
         password: deleteUserDto.password,

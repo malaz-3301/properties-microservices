@@ -38,7 +38,7 @@ export class ToPropertiesAdPropertiesController {
     @CurrentUser() payload: JwtPayloadType,
   ) {
     return this.propertiesClient
-      .send('property.getAll', { query, userId: payload.id })
+      .send('properties.getAll', { query, userId: payload.id })
       .pipe(retry(2), timeout(5000));
   }
 
@@ -52,7 +52,7 @@ export class ToPropertiesAdPropertiesController {
   ) {
     query.status = PropertyStatus.PENDING;
     return this.propertiesClient
-      .send('property.getAllPending', { query, userId: payload.id })
+      .send('properties.getAllPending', { query, userId: payload.id })
       .pipe(retry(2), timeout(5000));
   }
 
@@ -65,7 +65,7 @@ export class ToPropertiesAdPropertiesController {
     @Body() updateProAdminDto: UpdateProAdminDto,
   ) {
     return this.propertiesClient
-      .send('property.updateAdminPro', { id, dto: updateProAdminDto })
+      .send('properties.updateAdmin', { id, updateProAdminDto })
       .pipe(retry(2), timeout(5000));
   }
 
@@ -75,7 +75,7 @@ export class ToPropertiesAdPropertiesController {
   @UseInterceptors(AuditInterceptor)
   deleteAdminPro(@Param('id') id: string) {
     return this.propertiesClient
-      .send('property.deleteAdminPro', { id: +id })
+      .send('properties.deleteAdminPro', { id: +id })
       .pipe(retry(2), timeout(5000));
   }
 }

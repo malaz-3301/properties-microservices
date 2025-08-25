@@ -8,12 +8,18 @@ import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module'
 import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module';
 import { UsersModule } from '../../../users-micro/src/users/users.module';
 import { Property } from '../../../properties-micro/src/properties/entities/property.entity';
+import { TranslateRpcModule } from '@malaz/contracts/modules/rpc/translate-rpc.module';
+import { dataSourceOptions } from 'db/data-source';
+import { PropertiesRpcModule } from '@malaz/contracts/modules/rpc/properties-rpc.module';
 
 @Module({
   imports: [
+    TypeOrmModule.forRoot(dataSourceOptions),
     JwtConfigModule,
     ConfigSetModule,
     UsersModule,
+    TranslateRpcModule,
+    PropertiesRpcModule,
     TypeOrmModule.forFeature([Plan, Property]),
   ],
   controllers: [PlansController],

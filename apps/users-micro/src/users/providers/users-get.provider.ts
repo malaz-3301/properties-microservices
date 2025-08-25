@@ -148,22 +148,5 @@ export class UsersGetProvider {
     return createHash('md5').update(JSON.stringify(obj)).digest('hex');
   }
 
-  async translate(targetLang: Language, text: string) {
-    const Url = this.configService.get<string>('TRANSLATE');
-    const sourceLang = Language.ARABIC;
-    const Url1 =
-      Url +
-      `?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
-    let translatedText;
-    await fetch(Url1)
-      .then((response) => response.json())
-      .then((data) => {
-        translatedText = data[0][0][0];
-      })
-      .catch((error) => {
-        console.error('حدث خطأ:', error);
-        console.log(Url1);
-      });
-    return translatedText;
-  }
+  
 }

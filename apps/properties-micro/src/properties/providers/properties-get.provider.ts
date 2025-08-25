@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -20,7 +21,7 @@ import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { FavoriteService } from '../../favorite/favorite.service';
 import { VotesService } from '../../votes/votes.service';
 import { createHash } from 'crypto';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom, lastValueFrom, retry, timeout } from 'rxjs';
 import { GeoEnum, Language, UserType } from '@malaz/contracts/utils/enums';
 import { GeoProDto } from '@malaz/contracts/dtos/properties/properties/geo-pro.dto';
@@ -40,22 +41,33 @@ export class PropertiesGetProvider {
     @Inject('GEO_SERVICE') private readonly geoClient: ClientProxy,
     @Inject('USERS_SERVICE')
     private readonly usersClient: ClientProxy,
+    @Inject('TRANSLATE_SERVICE')
+    private readonly translateClient: ClientProxy,
   ) {}
 
   async getProByUser(proId: number, userId: number, role: UserType) {
-    const property = await this.propertyRepository.findOne({
+    let property = await this.propertyRepository.findOne({
       where: { id: proId, [role]: { id: userId } },
     });
 
     if (!property) {
-      throw new NotFoundException('property not found!');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
     }
     const user = await lastValueFrom(
       this.usersClient
         .send('users.findById', { id: userId })
         .pipe(retry(2), timeout(5000)),
     );
-    this.getTranslatedProperty(property, user.language);
+    // this.getTranslatedProperty(property, user.language);
+    property = await lastValueFrom(
+      await this.translateClient.send('translate.getTranslatedProperty', {
+        property: property,
+        language: user.language,
+      }),
+    );
     return property;
   }
 
@@ -66,7 +78,10 @@ export class PropertiesGetProvider {
       select: { agency: { id: true, phone: true } },
     });
     if (!property) {
-      throw new NotFoundException('Property not found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
     }
     return property;
   }
@@ -81,7 +96,10 @@ export class PropertiesGetProvider {
     });
 
     if (!property) {
-      throw new NotFoundException('Property not found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
     }
     return property;
   }
@@ -96,7 +114,7 @@ export class PropertiesGetProvider {
 
   //جلب العقار مع تفاعلاتي عليه
   async findById_ACT(proId: number, userId: number) {
-    const property = await this.propertyRepository.findOne({
+    let property = await this.propertyRepository.findOne({
       where: { id: proId },
       relations: { agency: true },
       select: {
@@ -106,14 +124,30 @@ export class PropertiesGetProvider {
 
     console.log(property?.panoramaImages);
     if (!property) {
-      throw new NotFoundException('Property not found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
     }
     const user = await lastValueFrom(
       this.usersClient
         .send('users.findById', { id: userId })
         .pipe(retry(2), timeout(5000)),
     );
-    this.getTranslatedProperty(property, user.language);
+    // this.getTranslatedProperty(property, user.language);
+
+    property = await lastValueFrom(
+      await this.translateClient.send('translate.getTranslatedProperty', {
+        property: property,
+        language: user.language,
+      }),
+    );
+    if (!property) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Empty',
+      });
+    }
     console.log(property.propertyType);
     const isFavorite = await this.favoriteService.isFavorite(userId, proId);
     const voteValue = await this.votesService.isVote(proId, userId);
@@ -206,7 +240,7 @@ export class PropertiesGetProvider {
       }
     }
     console.log('last_level is :' + apiGeoLevel + ' : ' + apiGeoValue);
-    const properties = await this.propertyRepository.find({
+    let properties = await this.propertyRepository.find({
       where: { location: { [apiGeoLevel]: apiGeoValue } },
     });
     const user = await lastValueFrom(
@@ -214,9 +248,13 @@ export class PropertiesGetProvider {
         .send('users.findById', { id: userId })
         .pipe(retry(2), timeout(5000)),
     );
-    for (let i = 0; i < properties.length; i++) {
-      this.getTranslatedProperty(properties[i], user.language);
-    }
+    // this.getTranslatedProperty(properties[i], user.language);
+    properties = await lastValueFrom(
+      await this.translateClient.send('translate.getTranslatedProperties', {
+        property: properties,
+        language: user.language,
+      }),
+    );
     return properties;
   }
 
@@ -315,7 +353,7 @@ export class PropertiesGetProvider {
     console.log(pageNum);
     console.log(numPerPage);
     console.log(numPerPage * (pageNum - 1));
-    const properties: Property[] = await this.propertyRepository.find({
+    let properties: Property[] = await this.propertyRepository.find({
       where,
       skip: numPerPage * (pageNum - 1), //pagination
       take: numPerPage,
@@ -358,9 +396,14 @@ export class PropertiesGetProvider {
       if (!user) {
         throw new NotFoundException();
       }
-      for (let i = 0; i < properties.length; i++) {
-        this.getTranslatedProperty(properties[i], user.language);
-      }
+      // this.getTranslatedProperty(properties[i], user.language);
+      properties = await lastValueFrom(
+        await this.translateClient.send('translate.getTranslatedProperties', {
+          property: properties,
+          language: user.language,
+        }),
+      );
+      console.log(properties)
     }
     if (!properties || properties.length === 0) {
       throw new NotFoundException('No estates found');
@@ -396,20 +439,9 @@ export class PropertiesGetProvider {
       select: { owner: { id: true }, agency: { id: true } },
     });
   }
-
-  getTranslatedProperty(property: Property, language: Language) {
-    if (language == Language.ARABIC) {
-      if (property.multi_description)
-        property['description'] = property.multi_description['ar'];
-      property['title'] = property.multi_title['ar'];
-    } else if (language == Language.ENGLISH) {
-      if (property.multi_description)
-        property['description'] = property.multi_description['en'];
-      property['title'] = property.multi_title['en'];
-    } else {
-      if (property.multi_description)
-        property['description'] = property.multi_description['de'];
-      property['title'] = property.multi_title['de'];
-    }
+  defaultLanguage(property: Property) {
+    property['description'] = property.multi_description.ar;
+    property['title'] = property.multi_title.area;
+    return property;
   }
 }

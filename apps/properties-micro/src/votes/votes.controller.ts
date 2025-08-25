@@ -1,6 +1,4 @@
-import {
-  Controller,
-} from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { VotesService } from './votes.service';
 import { Payload } from '@nestjs/microservices';
 import { JwtPayloadType } from '@malaz/contracts/utils/constants';
@@ -13,23 +11,24 @@ export class VotesController {
   // تغيير حالة التصويت لمادة معينة
   @MessagePattern('votes.changeStatus')
   async create(
-    @Payload() payload: { proId: number, value: number, user: JwtPayloadType },
+    @Payload() payload: { proId: number; value: number; userId: number },
   ) {
-    return this.votesService.changeVoteStatus(payload.proId, payload.value, payload.user.id);
+    return this.votesService.changeVoteStatus(
+      payload.proId,
+      payload.value,
+      payload.userId,
+    );
   }
 
   // جلب المستخدمين الذين صوتوا لصعود المادة
-  @MessagePattern('votes.whoVoted')
-  async getUsersVotedUp(
-    @Payload() payload: { proId: number },
-  ) {
+  @MessagePattern('votes.getUsersVotedUp')
+  async getUsersVotedUp(@Payload() payload: { proId: number }) {
     return this.votesService.getUsersVotedUp(payload.proId);
   }
 
   // جلب المزعجين (spammers)
-  @MessagePattern('votes.spammers')
+  @MessagePattern('votes.getSpammers')
   async getVoteSpammers() {
     return this.votesService.getVoteSpammers();
   }
-
 }

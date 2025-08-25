@@ -5,6 +5,7 @@ import { FilterPropertyDto } from '@malaz/contracts/dtos/properties/properties/f
 import { JwtPayloadType } from '@malaz/contracts/utils/constants';
 import { PropertyStatus } from '@malaz/contracts/utils/enums';
 import { NearProDto } from '@malaz/contracts/dtos/properties/properties/near-pro.dto';
+import { GeoProDto } from '@malaz/contracts/dtos/properties/properties/geo-pro.dto';
 
 @Controller('properties')
 export class PropertiesController {
@@ -13,21 +14,33 @@ export class PropertiesController {
   // قائمة العقارات المقبولة
   @MessagePattern('properties.getAllAccepted')
   async getAllAccepted(
-    @Payload() payload: { query: FilterPropertyDto; user?: JwtPayloadType },
+    @Payload() payload: { query: FilterPropertyDto; user?: number },
   ) {
     const { query, user } = payload;
     query.status = PropertyStatus.ACCEPTED;
-    if (user) return this.propertiesService.getAll(query, user.id);
+    console.log(`user ${user}`);
+    if (user) return this.propertiesService.getAll(query, user);
     return this.propertiesService.getAll(query);
   }
 
+  @MessagePattern('properties.getProByGeo')
+  async getProByGeo(
+    @Payload() payload: { geoProDto: GeoProDto; userId: number },
+  ) {
+    return this.propertiesService.getProByGeo(
+      payload.geoProDto,
+      payload.userId,
+    );
+  }
   // عقارات قريبة مني
   @MessagePattern('properties.getNearMe')
   async getProNearMe(
-    @Payload() payload: { nearProDto: NearProDto; user: JwtPayloadType },
+    @Payload() payload: { nearProDto: NearProDto; userId: number },
   ) {
-    const { user } = payload;
-    return this.propertiesService.getProNearMe(payload.nearProDto, user.id);
+    return this.propertiesService.getProNearMe(
+      payload.nearProDto,
+      payload.userId,
+    );
   }
 
   // أفضل العقارات بحسب النقاط
@@ -38,11 +51,8 @@ export class PropertiesController {
 
   // جلب عقار واحد
   @MessagePattern('properties.getOne')
-  async getOnePro(
-    @Payload() payload: { proId: number; user?: JwtPayloadType },
-  ) {
-    const userId = payload.user?.id!;
-    return this.propertiesService.getOnePro(payload.proId, userId);
+  async getOnePro(@Payload() payload: { proId: number; userId: number }) {
+    return this.propertiesService.getOnePro(payload.proId, payload.userId);
   }
 
   /*  // إرجاع معلومات ملف الصورة
@@ -54,28 +64,28 @@ export class PropertiesController {
     }*/
 
   // قبول عقار من الوكالة
-  @MessagePattern('properties.acceptAgency')
-  async acceptAgencyPro(
-    @Payload() payload: { proId: number; agency: JwtPayloadType },
-  ) {
-    return this.propertiesService.acceptAgencyPro(
-      payload.proId,
-      payload.agency.id,
-    );
-  }
+  // @MessagePattern('properties.acceptAgency')
+  // async acceptAgencyPro(
+  //   @Payload() payload: { proId: number; agency: JwtPayloadType },
+  // ) {
+  //   return this.propertiesService.acceptAgencyPro(
+  //     payload.proId,
+  //     payload.agency.id,
+  //   );
+  // }
 
   // جلب عقارات الوكالة
-  @MessagePattern('properties.getAgencyPros')
-  async getAgencyPros(
-    @Payload() payload: { query: FilterPropertyDto; agency: JwtPayloadType },
-  ) {
-    return this.propertiesService.getAll(
-      payload.query,
-      payload.agency.id,
-      undefined,
-      payload.agency.id,
-    );
-  }
+  // @MessagePattern('properties.getAgencyPros')
+  // async getAgencyPros(
+  //   @Payload() payload: { query: FilterPropertyDto; agencyId: number },
+  // ) {
+  //   return this.propertiesService.getAll(
+  //     payload.query,
+  //     payload.agencyId,
+  //     undefined,
+  //     payload.agencyId,
+  //   );
+  // }
 
   /*
   // حذف عقار بواسطة الوكالة — كانت معلّقة في الكود الأصلي (DELETE /delete)

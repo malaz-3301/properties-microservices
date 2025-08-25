@@ -22,6 +22,7 @@ export class ReportsMicroService {
     private usersGetProvider: UsersGetProvider, //محمد شيل هي
     @Inject('USERS_SERVICE')
     private readonly usersClient: ClientProxy,
+    @Inject('TRANSLATE_SERVICE') private readonly translateClient: ClientProxy,
   ) {}
 
   async report(createReportDto: CreateReportDto) {
@@ -29,8 +30,15 @@ export class ReportsMicroService {
       createReportDto.reason = createReportDto.otherReason;
     }
 
-    const report = this.reportsMicroRepository.create(createReportDto);
-    await this.createTranslatedReport(report, createReportDto);
+    let report = this.reportsMicroRepository.create(createReportDto);
+    // await this.createTranslatedReport(report, createReportDto);
+    report = await lastValueFrom(
+      await this.translateClient.send('translate.createTranslatedReport', {
+        report: report,
+        reportDto: createReportDto,
+      }),
+    );
+    // report.mult_description = { ar: '', en: '', de: '' };
     return await this.reportsMicroRepository.save(report);
   }
 
@@ -42,7 +50,7 @@ export class ReportsMicroService {
         .pipe(retry(2), timeout(5000)),
     );
     if (user?.userType === UserType.SUPER_ADMIN) {
-      const reports = await this.reportsMicroRepository.find({
+      let reports = await this.reportsMicroRepository.find({
         where: { title: Not(ReportTitle.T3) },
       });
       if (!reports || reports.length === 0) {
@@ -53,15 +61,27 @@ export class ReportsMicroService {
       }
       if (reports)
         for (let i = 0; i < reports.length; i++) {
-          this.getTranslatedReport(reports[i], user.language);
+          // this.getTranslatedReport(reports[i], user.language);
+          reports[i] = await lastValueFrom(
+            await this.translateClient.send('translate.getTranslatedReport', {
+              report: reports[i],
+              language: user.language,
+            }),
+          );
         }
       return reports;
     } else if (user?.userType === UserType.Financial) {
-      const reports = await this.reportsMicroRepository.find({
+      let reports = await this.reportsMicroRepository.find({
         where: { title: ReportTitle.T3 },
       });
       for (let i = 0; i < reports.length; i++) {
-        this.getTranslatedReport(reports[i], user.language);
+        // this.getTranslatedReport(reports[i], user.language);
+        reports[i] = await lastValueFrom(
+          await this.translateClient.send('translate.getTranslatedReport', {
+            report: reports[i],
+            language: user.language,
+          }),
+        );
       }
       return reports;
     }
@@ -75,7 +95,7 @@ export class ReportsMicroService {
     );
 
     if (user?.userType === UserType.SUPER_ADMIN) {
-      const reports = await this.reportsMicroRepository.find({
+      let reports = await this.reportsMicroRepository.find({
         where: {
           title: Not(ReportTitle.T3),
           reportStatus: ReportStatus.PENDING,
@@ -88,15 +108,27 @@ export class ReportsMicroService {
         });
       }
       for (let i = 0; i < reports.length; i++) {
-        await this.getTranslatedReport(reports[i], user.language);
+        // await this.getTranslatedReport(reports[i], user.language);
+        reports[i] = await lastValueFrom(
+          await this.translateClient.send('translate.getTranslatedReport', {
+            report: reports[i],
+            language: user.language,
+          }),
+        );
       }
       return reports;
     } else if (user?.userType === UserType.Financial) {
-      const reports = await this.reportsMicroRepository.find({
+      let reports = await this.reportsMicroRepository.find({
         where: { title: ReportTitle.T3, reportStatus: ReportStatus.PENDING },
       });
       for (let i = 0; i < reports.length; i++) {
-        await this.getTranslatedReport(reports[i], user.language);
+        // await this.getTranslatedReport(reports[i], user.language);
+        reports[i] = await lastValueFrom(
+          await this.translateClient.send('translate.getTranslatedReport', {
+            report: reports[i],
+            language: user.language,
+          }),
+        );
       }
       return reports;
     }
@@ -108,7 +140,7 @@ export class ReportsMicroService {
         .send('users.findById', { id: userId })
         .pipe(retry(2), timeout(5000)),
     );
-    const report = await this.reportsMicroRepository.findOneBy({
+    let report = await this.reportsMicroRepository.findOneBy({
       id: reportId,
     });
     if (!report) {
@@ -117,7 +149,13 @@ export class ReportsMicroService {
         message: 'Empty',
       });
     }
-    await this.getTranslatedReport(report, user.language);
+    // await this.getTranslatedReport(report, user.language);
+    report = await lastValueFrom(
+      await this.translateClient.send('translate.getTranslatedReport', {
+        report: report,
+        language: user.language,
+      }),
+    );
     return report;
   }
 
@@ -141,30 +179,5 @@ export class ReportsMicroService {
         reportStatus: ReportStatus.Rejected,
       });
     }
-  }
-
-  getTranslatedReport(report: ReportsMicro, language: Language) {
-    if (language == Language.ARABIC) {
-      report['description'] = report.mult_description['ar'];
-    } else if (language == Language.ENGLISH) {
-      report['description'] = report.mult_description['en'];
-    } else {
-      report['description'] = report.mult_description['de'];
-    }
-  }
-
-  async createTranslatedReport(
-    report: ReportsMicro,
-    createReportDto: CreateReportDto,
-  ) {
-    report.mult_description = { ar: createReportDto.description };
-    report.mult_description['en'] = await this.usersGetProvider.translate(
-      Language.ENGLISH,
-      createReportDto.description,
-    );
-    report.mult_description['de'] = await this.usersGetProvider.translate(
-      Language.Germany,
-      createReportDto.description,
-    );
   }
 }

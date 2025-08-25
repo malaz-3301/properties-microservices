@@ -19,21 +19,21 @@ export class AuthMicroController {
     return this.authService.login(loginUserDto);
   }
 
-  @MessagePattern('auth.reset')
+  @MessagePattern('auth.resetAccount')
   resetAccount(@Payload() resetAccountDto: ResetAccountDto) {
     return this.authService.resetAccount(resetAccountDto);
   }
 
   @MessagePattern('auth.resetPassword')
   resetPassword(
-    @Payload() data: { payload: JwtPayloadType; dto: ResetPasswordDto },
+    @Payload() data: { userId: number; resetPasswordDto: ResetPasswordDto },
   ) {
-    return this.authService.resetPassword(data.payload.id, data.dto);
+    return this.authService.resetPassword(data.userId, data.resetPasswordDto);
   }
 
   @MessagePattern('auth.tokenTime')
-  tokenTime(@Payload() payload: JwtPayloadType) {
-    return this.authService.tokenTime(payload);
+  tokenTime(@Payload() data: { userId: number }) {
+    return this.authService.tokenTime(data.userId);
   }
 
   @MessagePattern('auth.addAdmin')
@@ -42,14 +42,12 @@ export class AuthMicroController {
   }
 
   @MessagePattern('auth.getCurrentUser')
-  getCurrentUser(@Payload() payload: JwtPayloadType) {
-    return this.authService.getCurrentUser(payload.id);
+  getCurrentUser(@Payload() payload: { userId: number }) {
+    return this.authService.getCurrentUser(payload.userId);
   }
 
   @MessagePattern('auth.changeLanguage')
-  changeLanguage(
-    @Payload() data: { payload: JwtPayloadType; language: Language },
-  ) {
-    return this.authService.changeLanguage(data.language, data.payload.id);
+  changeLanguage(@Payload() data: { userId: number; language: Language }) {
+    return this.authService.changeLanguage(data.language, data.userId);
   }
 }

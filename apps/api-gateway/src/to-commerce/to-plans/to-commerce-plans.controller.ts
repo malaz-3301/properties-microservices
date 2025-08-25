@@ -29,7 +29,8 @@ export class ToCommercePlansController {
   @UseGuards(AuthRolesGuard)
   @Roles(UserType.SUPER_ADMIN, UserType.Financial)
   create(@Body() createPlanDto: CreatePlanDto) {
-    return this.commerceClient.send('commerce.createPlan', createPlanDto).pipe(
+    console.log('controller')
+    return this.commerceClient.send('plans.create', createPlanDto).pipe(
       retry(2),
       timeout(5000),
       catchError((err) => {
@@ -40,6 +41,7 @@ export class ToCommercePlansController {
 
   @Post('back')
   create_back_planes() {
+    console.log('back')
     return this.commerceClient
       .send('plans.createBack', {})
       .pipe(retry(2), timeout(5000));
@@ -50,7 +52,7 @@ export class ToCommercePlansController {
   @Roles(UserType.SUPER_ADMIN, UserType.Financial)
   update(@Param('id') id: string, @Body() updatePlanDto: UpdatePlanDto) {
     return this.commerceClient
-      .send('commerce.updatePlan', { id: +id, updatePlanDto })
+      .send('plans.update', { id: +id, updatePlanDto })
       .pipe(
         retry(2),
         timeout(5000),
@@ -64,10 +66,10 @@ export class ToCommercePlansController {
   @UseGuards(AuthGuard)
   findAll(@CurrentUser() user: JwtPayloadType) {
     return this.commerceClient
-      .send('commerce.findAllPlans', { userId: user.id })
+      .send('plans.findAll', { userId: user.id })
       .pipe(
         retry(2),
-        timeout(5000),
+        timeout(50000),
         catchError((err) => {
           throw err;
         }),

@@ -11,11 +11,13 @@ import { GlobalCacheModule } from '@malaz/contracts/modules/set/cache-global.mod
 import { dataSourceOptions } from '../../../db/data-source';
 import { FromRpcToReportsModule } from './a-from-rpc-to-reports/from-rpc-to-reports.module';
 import { UsersRpcModule } from '@malaz/contracts/modules/rpc/users-rpc.module';
+import { TranslateRpcModule } from '@malaz/contracts/modules/rpc/translate-rpc.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(dataSourceOptions),
     UsersModule,
+    TranslateRpcModule,
     TypeOrmModule.forFeature([ReportsMicro]),
     UsersRpcModule,
     GlobalCacheModule,

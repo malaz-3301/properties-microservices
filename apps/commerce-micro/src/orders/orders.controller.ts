@@ -14,12 +14,12 @@ export class OrdersController {
     @Payload()
     payload: {
       createPlanOrderDto: CreatePlanOrderDto;
-      user: JwtPayloadType;
+      userId: number;
     },
   ) {
     return this.ordersService.createPlanStripe(
       payload.createPlanOrderDto,
-      payload.user.id,
+      payload.userId,
     );
   }
 
@@ -29,7 +29,7 @@ export class OrdersController {
     //  return this.ordersService.createHook(payload.body, payload.signature);
   }
 
-  @MessagePattern('orders.spaceRemitInfo')
+  @MessagePattern('orders.getPaymentInfo')
   info(@Payload() payload: { spaceRemitDto: SpaceRemitDto }) {
     return this.ordersService.getPaymentInfo(payload.spaceRemitDto);
   }

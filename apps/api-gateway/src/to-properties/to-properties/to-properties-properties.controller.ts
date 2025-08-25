@@ -35,7 +35,7 @@ export class ToPropertiesPropertiesController {
   ) {
     query.status = PropertyStatus.ACCEPTED;
     return this.propertiesClient
-      .send('property.getAllAccepted', { query, userId: user.id })
+      .send('properties.getAllAccepted', { query, user: user.id })
       .pipe(retry(2), timeout(5000));
   }
 
@@ -46,14 +46,18 @@ export class ToPropertiesPropertiesController {
     @CurrentUser() user: JwtPayloadType,
   ) {
     return this.propertiesClient
-      .send('property.getProByGeo', { geoProDto, userId: user.id })
+      .send('properties.getProByGeo', { geoProDto, userId: user.id })
       .pipe(retry(2), timeout(5000));
   }
 
   @Get('near')
-  getProNearMe(@Query() nearProDto: NearProDto) {
+  @UseGuards(AuthGuard)
+  getProNearMe(
+    @Query() nearProDto: NearProDto,
+    @CurrentUser() user: JwtPayloadType,
+  ) {
     return this.propertiesClient
-      .send('property.getProNearMe', { nearProDto })
+      .send('properties.getNearMe', { nearProDto, userId: user.id })
       .pipe(retry(2), timeout(5000));
   }
 
@@ -61,7 +65,7 @@ export class ToPropertiesPropertiesController {
   @UseInterceptors(CacheInterceptor)
   getTopScorePro(@Param('limit', ParseIntPipe) limit: number) {
     return this.propertiesClient
-      .send('property.getTopScorePro', { limit })
+      .send('properties.getTopScore', { limit })
       .pipe(retry(2), timeout(5000));
   }
 
@@ -73,7 +77,19 @@ export class ToPropertiesPropertiesController {
     @CurrentUser() user: JwtPayloadType,
   ) {
     return this.propertiesClient
-      .send('property.getOnePro', { proId, userId: user.id })
+      .send('properties.getOne', { proId, userId: user.id })
+      .pipe(retry(2), timeout(5000));
+  }
+  
+  @Get(':proId')
+  @UseGuards(AuthGuard)
+  @Throttle({ default: { ttl: 10000, limit: 5 } })
+  getAgencyPros(
+    @Param('proId', ParseIntPipe) proId: number,
+    @CurrentUser() user: JwtPayloadType,
+  ) {
+    return this.propertiesClient
+      .send('properties.getOne', { proId, userId: user.id })
       .pipe(retry(2), timeout(5000));
   }
 

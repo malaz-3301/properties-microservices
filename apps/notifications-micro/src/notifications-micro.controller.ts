@@ -7,36 +7,52 @@ import { UpdateNotificationDto } from '@malaz/contracts/dtos/notification/update
 
 @Controller()
 export class NotificationsMicroController {
-  constructor(private readonly notificationsMicroService: NotificationsMicroService) {}
+  constructor(
+    private readonly notificationsMicroService: NotificationsMicroService,
+  ) {}
 
   @MessagePattern('notifications.markAsRead')
-  async markAsRead(@Payload() payload: { id: number; user: JwtPayloadType }) {
-    return this.notificationsMicroService.markAsRead(payload.user.id, payload.id);
+  async markAsRead(@Payload() payload: { id: number; userId: number }) {
+    return this.notificationsMicroService.markAsRead(
+      payload.userId,
+      payload.id,
+    );
   }
 
   @MessagePattern('notifications.markAllAsRead')
-  async markAllAsRead(@Payload() payload: { user: JwtPayloadType }) {
-    return this.notificationsMicroService.markAllAsRead(payload.user.id);
+  async markAllAsRead(@Payload() payload: { userId: number }) {
+    return this.notificationsMicroService.markAllAsRead(payload.userId);
   }
 
   @MessagePattern('notifications.unread')
-  async getUnreadNotification(@Payload() payload: { user: JwtPayloadType }) {
-    return this.notificationsMicroService.getUnreadNotifications(payload.user.id);
+  async getUnreadNotification(@Payload() payload: { userId: number }) {
+    return this.notificationsMicroService.getUnreadNotifications(
+      payload.userId,
+    );
   }
 
   @MessagePattern('notifications.read')
-  async getReadNotification(@Payload() payload: { user: JwtPayloadType }) {
-    return this.notificationsMicroService.getReadNotifications(payload.user.id);
+  async getReadNotification(@Payload() payload: { userId: number }) {
+    return this.notificationsMicroService.getReadNotifications(payload.userId);
   }
 
   @MessagePattern('notifications.allMy')
-  async getMyNotifications(@Payload() payload: { user: JwtPayloadType }) {
-    return this.notificationsMicroService.getMyNotifications(payload.user.id);
+  async getMyNotifications(@Payload() payload: { userId: number }) {
+    return this.notificationsMicroService.getMyNotifications(payload.userId);
   }
 
   @MessagePattern('notifications.create')
-  async create(@Payload() payload: { createNotificationDto: CreateNotificationDto; user: JwtPayloadType }) {
-    return this.notificationsMicroService.create(payload.createNotificationDto, payload.user.id);
+  async create(
+    @Payload()
+    payload: {
+      createNotificationDto: CreateNotificationDto;
+      userId: number;
+    },
+  ) {
+    return this.notificationsMicroService.create(
+      payload.createNotificationDto,
+      payload.userId,
+    );
   }
 
   @MessagePattern('notifications.findAll')
@@ -50,8 +66,17 @@ export class NotificationsMicroController {
   }
 
   @MessagePattern('notifications.update')
-  async update(@Payload() payload: { id: number; updateNotificationDto: UpdateNotificationDto }) {
-    return this.notificationsMicroService.update(payload.id, payload.updateNotificationDto);
+  async update(
+    @Payload()
+    payload: {
+      id: number;
+      updateNotificationDto: UpdateNotificationDto;
+    },
+  ) {
+    return this.notificationsMicroService.update(
+      payload.id,
+      payload.updateNotificationDto,
+    );
   }
 
   @MessagePattern('notifications.remove')

@@ -9,18 +9,21 @@ export class FavoriteController {
 
   @MessagePattern('favorite.changeStatus')
   async changeStatusOfFavorite(
-    @Payload() payload: { user: JwtPayloadType; prodId: number }
+    @Payload() payload: { userId: number; prodId: number },
   ) {
-    return this.favoriteService.changeStatusOfFavorite(payload.user.id, payload.prodId);
+    return this.favoriteService.changeStatusOfFavorite(
+      payload.userId,
+      payload.prodId,
+    );
   }
 
   @MessagePattern('favorite.getAll')
-  async getAllFavorites(@Payload() payload: { user: JwtPayloadType }) {
-    return this.favoriteService.getAllFavorites(payload.user.id);
+  async getAllFavorites(@Payload() payload: { userId: number }) {
+    return this.favoriteService.getAllFavorites(payload.userId);
   }
 
   @MessagePattern('favorite.isFavorite')
-  async isFavorite(@Payload() payload: { user: JwtPayloadType; prodId: number }) {
-    return this.favoriteService.isFavorite(payload.user.id, payload.prodId);
+  async isFavorite(@Payload() payload: { userId: number; prodId: number }) {
+    return this.favoriteService.isFavorite(payload.userId, payload.prodId);
   }
 }
