@@ -20,7 +20,6 @@ export class PropertiesCreateProvider {
   constructor(
     private readonly propertiesVoViProvider: PropertiesVoSuViProvider,
     private readonly propertiesGetProvider: PropertiesGetProvider,
-    private readonly usersGetProvider: UsersGetProvider,
     @Inject('USERS_SERVICE')
     private readonly usersClient: ClientProxy,
     @Inject('TRANSLATE_SERVICE')

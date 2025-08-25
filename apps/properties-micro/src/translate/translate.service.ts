@@ -18,14 +18,13 @@ export class TranslateService {
     return plan;
   }
   getTranslatedPlans(plans, language) {
-    console.log(language);
-    return plans.map((plan) => {
+    return plans.map(function (plan) {
       if (language == 'ar') {
-        plan['description'] = plan.multi_description['ar'];
+        plan['description'] = plan.multi_description.ar;
       } else if (language == 'en') {
-        plan['description'] = plan.multi_description['en'];
+        plan['description'] = plan.multi_description.en;
       } else {
-        plan['description'] = plan.multi_description['de'];
+        plan['description'] = plan.multi_description.de;
       }
       return plan;
     });
@@ -67,6 +66,24 @@ export class TranslateService {
       property['title'] = property.multi_title['de'];
     }
     return property;
+  }
+  getTranslatedProperties(properteis, language) {
+    return properteis.map(function (property) {
+      if (language == 'ar') {
+        if (property.multi_description)
+          property['description'] = property.multi_description['ar'];
+        property['title'] = property.multi_title['ar'];
+      } else if (language == 'en') {
+        if (property.multi_description)
+          property['description'] = property.multi_description['en'];
+        property['title'] = property.multi_title['en'];
+      } else {
+        if (property.multi_description)
+          property['description'] = property.multi_description['de'];
+        property['title'] = property.multi_title['de'];
+      }
+      return property;
+    });
   }
   async updateTranslatedProperty(property, updatePropertyDto) {
     if (updatePropertyDto.description) {

@@ -40,6 +40,8 @@ export class NotificationsMicroService {
     private i18nService: I18nService,
     @Inject('USERS_SERVICE')
     private readonly userClient: ClientProxy,
+    @Inject('TRANSLATE_SERVICE')
+    private readonly translateClient: ClientProxy,
     @Inject('SMS_SERVICE') private readonly client2: ClientProxy,
   ) {}
   private readonly logger = new Logger(NotificationsMicroService.name);
@@ -70,7 +72,7 @@ export class NotificationsMicroService {
       //   createNotificationDto.message,
       // );
       await lastValueFrom(
-        await this.userClient.send('translate.translate', {
+        await this.translateClient.send('translate.translate', {
           language: user.language,
           text: createNotificationDto.message,
         }),
