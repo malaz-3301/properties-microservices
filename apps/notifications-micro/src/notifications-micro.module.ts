@@ -11,6 +11,7 @@ import { NotificationMicro } from './entities/notification-micro.entity';
 import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module';
 import { FromRpcToNotificationsModule } from './a-from-rpc-to-notifications/from-rpc-to-notifications.module';
 import { UsersMicroModule } from 'apps/users-micro/src/users-micro.module';
+import { TranslateRpcModule } from '@malaz/contracts/modules/rpc/translate-rpc.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UsersMicroModule } from 'apps/users-micro/src/users-micro.module';
     forwardRef(() => UsersMicroModule),
     UsersModule,
     JwtConfigModule,
+    TranslateRpcModule,
     ConfigModule,
     I18nSetModule,
     FromRpcToNotificationsModule,

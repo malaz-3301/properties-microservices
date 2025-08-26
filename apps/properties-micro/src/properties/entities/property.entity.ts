@@ -16,7 +16,7 @@ import { Estate } from './estate.entity';
 import { Vote } from '../../votes/entities/vote.entity';
 import { View } from '../../views/entities/view.entity';
 import { PriorityRatio } from './priority-ratio.entity';
-import { User } from 'apps/users-micro/src/users/entities/user.entity';
+import { User } from '../../../../users-micro/src/users/entities/user.entity';
 import { PropertyStatus } from '@malaz/contracts/utils/enums';
 import { CURRENT_TIMESTAMP } from '@malaz/contracts/utils/constants';
 import { Contract } from '../../../../users-micro/src/contracts/entities/contract.entity';

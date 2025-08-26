@@ -11,11 +11,15 @@ import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module'
 import { GeoQueRpcModule } from '@malaz/contracts/modules/rpc/geo-que-rpc.module';
 import { ProGeoModule } from './pro-geo/pro-geo.module';
 import { FromRpcToPropertiesModule } from './a-from-rpc-to-properties/from-rpc-to-properties.module';
+import { TranslateRpcModule } from '@malaz/contracts/modules/rpc/translate-rpc.module';
+import { TranslateModule } from './translate/translate.module';
 
 @Module({
   imports: [
     ProGeoModule,
+    TranslateModule,
     GeoQueRpcModule,
+    TranslateRpcModule,
     PropertiesModule,
     FavoriteModule,
     ViewsModule,

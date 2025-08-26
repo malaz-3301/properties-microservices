@@ -27,6 +27,15 @@ async function bootstrap() {
       noAck: false,
     },
   });
+  app.connectMicroservice({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://localhost:5672'],
+      queue: 'translate_queue',
+      queueOptions: { durable: true },
+      noAck: false,
+    },
+  });
   await app.startAllMicroservices();
 
   console.log('Properties microservice is listening');

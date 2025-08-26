@@ -17,7 +17,7 @@ export class PropertiesDelProvider {
     @InjectRepository(Property)
     private propertyRepository: Repository<Property>,
     private readonly propertiesGetProvider: PropertiesGetProvider,
-    @Inject('USERS_SERVICE')
+    @Inject('ANALYTICS_SERVICE')
     private readonly usersClient: ClientProxy,
   ) {}
 

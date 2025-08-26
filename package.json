@@ -13,7 +13,6 @@
     "start:auth": "nest start auth-micro --watch",
     "start:users": "cross-env NODE_ENV=development nest start users-micro --watch",
     "start:notifications": "cross-env NODE_ENV=development nest start notifications-micro --watch",
-    "start:translate": "cross-env NODE_ENV=development nest start translate-micro --watch",
     "start:properties": "nest start properties-micro --watch",
     "start:analytics": "nest start automation-analytics-micro --watch",
     "start:reports": "nest start reports-micro --watch",
