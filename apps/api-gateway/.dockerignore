@@ -1,0 +1,26 @@
+# node modules المحلية
+node_modules
+**/node_modules
+
+# مجلد البناء القديم
+dist
+**/dist
+
+# ملفات IDE
+.vscode
+.idea
+
+# Git
+.git
+.gitignore
+
+# ملفات Docker نفسها لو مش ضرورية
+docker-compose.override.yml
+
+# ملفات temp
+*.log
+*.tmp
+
+# أي ملفات كبيرة مش لازمة للبناء
+tests
+docs

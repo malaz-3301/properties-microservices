@@ -12,7 +12,7 @@ import { LoginUserDto } from '@malaz/contracts/dtos/auth/login-user.dto';
 import { ResetAccountDto } from '@malaz/contracts/dtos/auth/reset-account.dto';
 import { ResetPasswordDto } from '@malaz/contracts/dtos/auth/reset-password.dto';
 import { AddAdminDto } from '@malaz/contracts/dtos/auth/add-admin.dto';
-import { Language } from '@malaz/contracts/utils/enums';
+import { Language, UserType } from '@malaz/contracts/utils/enums';
 import { User } from '../../users-micro/src/users/entities/user.entity';
 import { UsersOtpProvider } from '../../users-micro/src/users/providers/users-otp.provider';
 import { BannedService } from '../../users-micro/src/banned/banned.service';
@@ -137,8 +137,16 @@ export class AuthMicroService {
   }
 
   async addAdmin(addAdminDto: AddAdminDto) {
+    addAdminDto['userType'] = UserType.ADMIN;
     addAdminDto['isAccountVerified'] = true;
-    await this.usersRepository.save(addAdminDto);
+    addAdminDto['token'] =
+      'eqqB3fMARmZEA3c8Qm2iri:APA91bG0VJ7TN6zIPBXO_4nNANeU2YSVKUXMVvuOHUG1y6bBLmJDEoLXv-IHJN2AZyDcRLmVKQS7VXlCGvRxQtW7I3MHelgo9IMdxZ2sxu5K9eaAEs_YWow';
+    return await this.usersRepository.save(addAdminDto);
+  }
+
+  async deleteAdmin(adminId, supperAdminPass) {
+    //معالجة
+    return await this.usersRepository.delete(adminId);
   }
 
   async changeLanguage(Language: Language, userId: number) {

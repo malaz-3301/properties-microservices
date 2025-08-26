@@ -141,12 +141,14 @@ export class ToUsersUsersController {
       .send('users.getAllAdmins', query)
       .pipe(retry(2), timeout(5000));
   }
+
   @Get('getAdminById/:id')
   @Roles(UserType.SUPER_ADMIN)
   @UseGuards(AuthRolesGuard)
   getAdminById(@Param('id', ParseIntPipe) id: number) {
+    console.log('jjj');
     return this.usersClient
-      .send('users.getAdminById', {id})
+      .send('users.getAdminById', { id })
       .pipe(retry(2), timeout(5000));
   }
 

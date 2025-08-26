@@ -1,9 +1,8 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Inject } from '@nestjs/common';
 
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 import { LoginUserDto } from '@malaz/contracts/dtos/auth/login-user.dto';
 import { ResetAccountDto } from '@malaz/contracts/dtos/auth/reset-account.dto';
-import { JwtPayloadType } from '@malaz/contracts/utils/constants';
 import { ResetPasswordDto } from '@malaz/contracts/dtos/auth/reset-password.dto';
 import { AddAdminDto } from '@malaz/contracts/dtos/auth/add-admin.dto';
 import { Language } from '@malaz/contracts/utils/enums';
@@ -11,7 +10,11 @@ import { AuthMicroService } from './auth-micro.service';
 
 @Controller('auth')
 export class AuthMicroController {
-  constructor(private readonly authService: AuthMicroService) {}
+  constructor(
+    private readonly authService: AuthMicroService,
+    @Inject('USERS_SERVICE')
+    private readonly usersClient: ClientProxy,
+  ) {}
 
   @MessagePattern('auth.login')
   login(@Payload() loginUserDto: LoginUserDto) {
@@ -39,6 +42,14 @@ export class AuthMicroController {
   @MessagePattern('auth.addAdmin')
   addAdmin(@Payload() addAdminDto: AddAdminDto) {
     return this.authService.addAdmin(addAdminDto);
+  }
+
+  @MessagePattern('auth.delAdmin')
+  deleteAdmin(@Payload() Payload: { adminId: number; superAdminPass: string }) {
+    return this.authService.deleteAdmin(
+      Payload.adminId,
+      Payload.superAdminPass,
+    );
   }
 
   @MessagePattern('auth.getCurrentUser')

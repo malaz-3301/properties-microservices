@@ -1,5 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { config } from 'dotenv';
+
+config({ path: '.env.development' });
 
 @Global()
 @Module({
@@ -9,7 +12,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         name: 'SMS_SERVICE',
         transport: Transport.RMQ, //AMQP (Advanced Message Queuing Protocol)
         options: {
-          urls: ['amqp://localhost:5672'],
+          urls: [process.env.RABBITMQ_URL ?? 'amqp://rabbitmq:5672'],
           queue: 'sms_queue',
           queueOptions: { durable: true },
           // خطأ تضعها هنا noAck: false,

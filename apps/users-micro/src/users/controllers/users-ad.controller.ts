@@ -43,7 +43,7 @@ export class UsersAdController {
   }
 
   @MessagePattern('users.getAdminById')
-  getAdminById(@Payload() payload : {id: number}) {
+  getAdminById(@Payload() payload: { id: number }) {
     return this.usersService.getAdminById(payload.id);
   }
 

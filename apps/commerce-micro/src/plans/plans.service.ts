@@ -1,9 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Plan } from './entities/plan.entity';
@@ -32,13 +27,8 @@ export class PlansService {
 
   async create(createPlanDto: CreatePlanDto) {
     let plan = this.planRepository.create(createPlanDto);
-    console.log('mohammed plan');
-    plan = await lastValueFrom(
-      await this.translateClient.send('translate.createAndUpdatePlan', {
-        plan: plan,
-        planDto: createPlanDto,
-      }),
-    );
+    await this.createAndUpdatePlan(plan, createPlanDto);
+
     // await this.createAndUpdatePlan(plan, createPlanDto);
     return this.planRepository.save(plan);
   }
@@ -47,6 +37,7 @@ export class PlansService {
     await this.dataSource.query(`
     TRUNCATE TABLE "plans" RESTART IDENTITY CASCADE;
   `);
+
     const plans = [
       {
         planDuration: 'Other',
@@ -89,6 +80,7 @@ export class PlansService {
         planPrice: 19,
       },
     ];
+    console.log('backddddddddddddd');
     const entities = this.planRepository.create(plans);
     return this.planRepository.save(entities);
   }
@@ -99,12 +91,7 @@ export class PlansService {
       throw new NotFoundException();
     }
     // await this.createAndUpdatePlan(plan, updatePlanDto);
-    plan = await lastValueFrom(
-      await this.translateClient.send('translate.createAndUpdatePlan', {
-        plan: plan,
-        planDto: updatePlanDto,
-      }),
-    );
+    await this.createAndUpdatePlan(plan, updatePlanDto);
     return this.planRepository.save({ ...plan, ...updatePlanDto });
   }
 
@@ -115,6 +102,7 @@ export class PlansService {
         .send('users.findById', { id: userId })
         .pipe(retry(2), timeout(5000)),
     );
+    console.log('findallllllllll');
 
     //ارجاع الخطة اذا منتهية
     const count = await lastValueFrom(
@@ -132,15 +120,39 @@ export class PlansService {
       //شيل بس الـ Free
       where = { id: Not(In([1, planId])) };
     }
-    let plans = await this.planRepository.find({
+    const plans = await this.planRepository.find({
       where: where,
     });
-    plans = await lastValueFrom(
-      await this.translateClient.send('translate.getTranslatedPlans', {
-        plan: plans,
-        language: user.language,
-      }),
-    );
+    for (let i = 0; i < plans.length; i++) {
+      this.getTranslatedPlan(plans[i], user.language);
+    }
     return plans;
+  }
+
+  getTranslatedPlan(plan: Plan, language: Language) {
+    if (language == Language.ARABIC) {
+      plan['description'] = plan.multi_description['ar'];
+    } else if (language == Language.ENGLISH) {
+      plan['description'] = plan.multi_description['en'];
+    } else {
+      plan['description'] = plan.multi_description['de'];
+    }
+  }
+
+  async createAndUpdatePlan(
+    plan: Plan,
+    createPlanDto: CreatePlanDto | UpdatePlanDto,
+  ) {
+    if (createPlanDto.description) {
+      plan.multi_description = { ar: createPlanDto.description };
+      plan.multi_description['en'] = await this.usersGetProvider.translate(
+        Language.ENGLISH,
+        createPlanDto.description,
+      );
+      plan.multi_description['de'] = await this.usersGetProvider.translate(
+        Language.Germany,
+        createPlanDto.description,
+      );
+    }
   }
 }

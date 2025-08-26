@@ -1,5 +1,3 @@
-
-import { Column } from 'typeorm';
 import {
   IsEnum,
   IsNotEmpty,
@@ -7,12 +5,11 @@ import {
   IsString,
   Length,
 } from 'class-validator';
-import { PlanDuration, PlanType } from '@malaz/contracts/utils/enums';
+import { PlanType } from '@malaz/contracts/utils/enums';
 
 export class CreatePlanDto {
   @IsNotEmpty()
-  @IsEnum(PlanDuration)
-  planDuration: PlanDuration;
+  planDuration: string;
 
   @IsNotEmpty()
   @IsString()

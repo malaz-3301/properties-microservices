@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Inject,
   Param,
+  ParseIntPipe,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -21,7 +23,7 @@ import { LoginUserDto } from '@malaz/contracts/dtos/auth/login-user.dto';
 import { ResetAccountDto } from '@malaz/contracts/dtos/auth/reset-account.dto';
 import { ResetPasswordDto } from '@malaz/contracts/dtos/auth/reset-password.dto';
 import { ClientProxy } from '@nestjs/microservices';
-import { catchError, retry, timeout } from 'rxjs';
+import { catchError, lastValueFrom, retry, timeout } from 'rxjs';
 
 @Controller('auth')
 export class ToAuthController {
@@ -86,13 +88,25 @@ export class ToAuthController {
   @Post('addAdmin')
   @Roles(UserType.SUPER_ADMIN)
   @UseGuards(AuthRolesGuard)
-  addAdmin(@Body() addAdminDto: AddAdminDto) {
-    return this.authClient.send('auth.addAdmin', addAdminDto).pipe(
-      retry(2),
-      timeout(5000),
-      catchError((err) => {
-        throw err;
-      }),
+  async addAdmin(@Body() addAdminDto: AddAdminDto) {
+    return await lastValueFrom(
+      this.authClient
+        .send('auth.addAdmin', addAdminDto)
+        .pipe(retry(2), timeout(5000)),
+    );
+  }
+
+  @Delete('deleteAdmin/:adminId')
+  @Roles(UserType.SUPER_ADMIN)
+  @UseGuards(AuthRolesGuard)
+  async deleteAdmin(
+    @Param('adminId', ParseIntPipe) adminId: number,
+    @Body('password') superAdminPass: string,
+  ) {
+    return await lastValueFrom(
+      this.authClient
+        .send('auth.delAdmin', { adminId, superAdminPass })
+        .pipe(retry(2), timeout(5000)),
     );
   }
 

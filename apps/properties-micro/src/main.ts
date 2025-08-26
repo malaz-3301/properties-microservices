@@ -1,6 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { PropertiesMicroModule } from './properties-micro.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { config } from 'dotenv';
+
+config({ path: '.env.development' });
 
 async function bootstrap() {
   const app = await NestFactory.create(PropertiesMicroModule);
@@ -8,7 +11,7 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ, //AMQP
     options: {
-      urls: ['amqp://localhost:5672'],
+      urls: [process.env.RABBITMQ_URL ?? 'amqp://rabbitmq:5672'],
       queue: 'properties_queue',
       queueOptions: {
         durable: true,
@@ -18,7 +21,7 @@ async function bootstrap() {
   app.connectMicroservice({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'],
+      urls: [process.env.RABBITMQ_URL ?? 'amqp://rabbitmq:5672'],
       queue: 'geo_queue',
       queueOptions: { durable: true },
       noAck: false,

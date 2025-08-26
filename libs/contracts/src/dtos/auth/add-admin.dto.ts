@@ -1,15 +1,11 @@
 import {
-  IsAscii,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   Length,
   Min,
-  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-
 
 export class AddAdminDto {
   @IsNotEmpty()
@@ -24,7 +20,7 @@ export class AddAdminDto {
 
   @IsNotEmpty()
   @IsString()
-  @Length(14, 20)
+  @Length(6, 20)
   password: string;
 
   @IsOptional()

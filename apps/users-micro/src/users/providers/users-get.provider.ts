@@ -80,6 +80,7 @@ export class UsersGetProvider {
   }
 
   async getAdminById(adminId: number) {
+    //تحقق
     return await this.usersRepository.findOne({
       where: { id: adminId },
       relations: { audits: true },
@@ -87,7 +88,15 @@ export class UsersGetProvider {
   }
 
   async getOneAgency(agencyId: number) {
-    return this.usersRepository.findOneBy({ id: agencyId });
+    const user = await this.usersRepository.findOne({
+      where: { id: agencyId },
+      relations: ['agencyInfo'],
+    });
+    if (!user) {
+      throw new NotFoundException('User Not Found');
+    }
+    console.log(user.agencyInfo);
+    return user;
   }
 
   async getOneAgencyInfo(agencyId: number) {
@@ -148,5 +157,22 @@ export class UsersGetProvider {
     return createHash('md5').update(JSON.stringify(obj)).digest('hex');
   }
 
-  
+  async translate(targetLang: Language, text: string) {
+    const Url = this.configService.get<string>('TRANSLATE');
+    const sourceLang = Language.ARABIC;
+    const Url1 =
+      Url +
+      `?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+    let translatedText;
+    await fetch(Url1)
+      .then((response) => response.json())
+      .then((data) => {
+        translatedText = data[0][0][0];
+      })
+      .catch((error) => {
+        console.error('حدث خطأ:', error);
+        console.log(Url1);
+      });
+    return translatedText;
+  }
 }

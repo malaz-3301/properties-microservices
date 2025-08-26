@@ -21,6 +21,7 @@ import { Property } from '../apps/properties-micro/src/properties/entities/prope
 //dotenv config
 
 config({ path: '.env.development' });
+
 //config({ path: '.env' });
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
