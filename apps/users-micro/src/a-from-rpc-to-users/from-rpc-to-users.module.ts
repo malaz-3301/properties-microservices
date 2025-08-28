@@ -5,6 +5,7 @@ import { FromAuthController } from './from-auth/from-auth.controller';
 import { FromCommerceController } from './from-commerce/from-commerce.controller';
 import { FromPropertiesController } from './from-properties/from-properties.controller';
 import { FromReportsController } from './from-reports/from-reports.controller';
+import { FromNotificationsController } from './from-notifications/from-notifications.controller';
 
 @Module({
   controllers: [
@@ -14,6 +15,7 @@ import { FromReportsController } from './from-reports/from-reports.controller';
     FromCommerceController,
     FromPropertiesController,
     FromReportsController,
+    FromNotificationsController,
   ],
 })
 export class FromRpcToUsersModule {}

@@ -68,4 +68,11 @@ export class TranslateController {
       data.reportDto,
     );
   }
+  @MessagePattern('translate.translate')
+  async translate(@Payload() data: { language; message }) {
+    return await this.translateService.translate(
+      data.language,
+      data.message,
+    );
+  }
 }

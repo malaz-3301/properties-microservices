@@ -19,7 +19,6 @@ export class ReportsMicroService {
   constructor(
     @InjectRepository(ReportsMicro)
     private readonly reportsMicroRepository: Repository<ReportsMicro>,
-    private usersGetProvider: UsersGetProvider, //محمد شيل هي
     @Inject('USERS_SERVICE')
     private readonly usersClient: ClientProxy,
     @Inject('TRANSLATE_SERVICE') private readonly translateClient: ClientProxy,

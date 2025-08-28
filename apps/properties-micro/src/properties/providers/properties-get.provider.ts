@@ -122,7 +122,7 @@ export class PropertiesGetProvider {
       },
     });
 
-    console.log(property?.panoramaImages);
+    // console.log(property?.panoramaImages);
     if (!property) {
       throw new RpcException({
         statusCode: HttpStatus.NOT_FOUND,
@@ -148,15 +148,18 @@ export class PropertiesGetProvider {
         message: 'Empty',
       });
     }
-    console.log(property.propertyType);
+    // console.log(property.propertyType);
     const isFavorite = await this.favoriteService.isFavorite(userId, proId);
     const voteValue = await this.votesService.isVote(proId, userId);
     //I don't want fist Image
     const { panoramaImages, firstImage, ...propertyE } = property;
     //return from string to obj
+    console.log(typeof property.panoramaImages);
     const panoramaImagesParse: Record<string, string> = JSON.parse(
       property.panoramaImages as any,
     );
+    console.log(1);
+    console.log('fkdjkl');
     /*    const panoramaYehia = Object.entries(panoramaImagesParse).map(
           ([title, url]) => ({
             title,
@@ -259,7 +262,7 @@ export class PropertiesGetProvider {
   }
 
   async getProNearMe(nearProDto: NearProDto, userId: number) {
-    const result = await this.dataSource.query(
+    let result = await this.dataSource.query(
       `
           SELECT *,
                  ST_Distance(
@@ -275,6 +278,17 @@ export class PropertiesGetProvider {
           ORDER BY distance ASC;
       `,
       [nearProDto.lon, nearProDto.lat, nearProDto.distanceKm],
+    );
+    const user = await lastValueFrom(
+      this.usersClient
+        .send('users.findById', { id: userId })
+        .pipe(retry(2), timeout(5000)),
+    );
+    result = await lastValueFrom(
+      await this.translateClient.send('translate.getTranslatedProperties', {
+        property: result,
+        language: user.language,
+      }),
     );
     return result;
   }
@@ -403,7 +417,7 @@ export class PropertiesGetProvider {
           language: user.language,
         }),
       );
-      console.log(properties)
+      console.log(properties);
     }
     if (!properties || properties.length === 0) {
       throw new NotFoundException('No estates found');
@@ -433,6 +447,8 @@ export class PropertiesGetProvider {
   }
 
   getOwnerAndAgency(Id: number) {
+    console.log('ownerasd : ');
+    console.log(typeof Id);
     return this.propertyRepository.findOne({
       where: { id: Id },
       relations: ['agency', 'owner'],

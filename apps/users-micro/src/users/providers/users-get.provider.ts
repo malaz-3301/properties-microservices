@@ -175,4 +175,19 @@ export class UsersGetProvider {
       });
     return translatedText;
   }
+  public async findByPhone(phone: string) {
+    const user = await this.usersRepository.findOne({
+      where: { phone },
+      relations: { plan: true },
+    });
+    if (!user) {
+      return user;
+    }
+
+    console.log(user.userType);
+    if (user.userType === (UserType.ADMIN || UserType.SUPER_ADMIN)) {
+      throw new UnauthorizedException("You Can't its not user or agency");
+    }
+    return user;
+  }
 }

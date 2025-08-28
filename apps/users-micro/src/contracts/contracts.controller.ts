@@ -15,70 +15,77 @@ import { AuthGuard } from '@malaz/contracts/guards/auth.guard';
 import { CurrentUser } from '@malaz/contracts/decorators/current-user.decorator';
 import { CreateContractDto } from '@malaz/contracts/dtos/users/contracts/create-contract.dto';
 import { UpdateContractDto } from '@malaz/contracts/dtos/users/contracts/update-contract.dto';
-
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { UserType } from '@malaz/contracts/utils/enums';
 
 @Controller('contracts')
 export class ContractsController {
   constructor(private readonly contractsService: ContractsService) {}
 
-  @Post()
-  @UseGuards(AuthGuard)
-  create(@CurrentUser() user: JwtPayloadType, @Body() createContractDto: CreateContractDto) {
-    return this.contractsService.create(user.id, createContractDto);
+  @MessagePattern('contracts.create')
+  create(
+    @Payload()
+    payload: {
+      userId: number;
+      createContractDto: CreateContractDto;
+    },
+  ) {
+    return this.contractsService.create(
+      payload.userId,
+      payload.createContractDto,
+    );
   }
 
-  @Get('active')
-  @UseGuards(AuthGuard)
-  getMyActiveContracts(@CurrentUser() user: JwtPayloadType) {
-    console.log('ldasfjl');
-
-    console.log(user.id);
-
-    return this.contractsService.getMyActiveContracts(user.id);
+  @MessagePattern('contracts.getMyActiveContracts')
+  getMyActiveContracts(@Payload() payload: { userId: number }) {
+    return this.contractsService.getMyActiveContracts(payload.userId);
   }
 
-  @Get('expired')
-  @UseGuards(AuthGuard)
-  getMyExpiredContracts(@CurrentUser() user: JwtPayloadType) {
-    return this.contractsService.getMyExpiredContracts(user.id);
+  @MessagePattern('contracts.getMyExpiredContracts')
+  getMyExpiredContracts(@Payload() payload: { userId: number }) {
+    return this.contractsService.getMyExpiredContracts(payload.userId);
   }
 
-  @Get('all_my_contracts')
-  @UseGuards(AuthGuard)
-  getMyContracts(@CurrentUser() user: JwtPayloadType) {
-    return this.contractsService.getMyContracts(user.id);
+  @MessagePattern('contracts.getMyContracts')
+  getMyContracts(@Payload() payload: { userId: number }) {
+    return this.contractsService.getMyContracts(payload.userId);
   }
 
-  @Get('less_than_week')
-  @UseGuards(AuthGuard)
-  expiredaAfterWeekOrLess(@CurrentUser() user: JwtPayloadType) {
-    return this.contractsService.MyContractsExpiredAfterWeek(user.id);
+  @MessagePattern('contracts.expiredaAfterWeekOrLess')
+  expiredaAfterWeekOrLess(@Payload() payload: { userId: number }) {
+    return this.contractsService.MyContractsExpiredAfterWeek(payload.userId);
   }
 
-  @Get()
-  @UseGuards(AuthGuard)
+  @MessagePattern('contracts.expiredAfterWeek')
+  expiredAfterWeek() {
+    return this.contractsService.expiredAfterWeek();
+  }
+
+  @MessagePattern('contracts.findAll')
   findAll() {
     return this.contractsService.findAll();
   }
 
-  @Get(':id')
-  @UseGuards(AuthGuard)
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.contractsService.findOne(id);
-  }
-
-  @Patch(':id')
-  @UseGuards(AuthGuard)
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateContractDto: UpdateContractDto,
+  @MessagePattern('contracts.findOne')
+  findOne(
+    @Payload() payload: { id: number; userType: UserType; userId: number },
   ) {
-    return this.contractsService.update(id, updateContractDto);
+    return this.contractsService.findOne(
+      payload.id,
+      payload.userType,
+      payload.userId,
+    );
   }
 
-  @Delete(':id')
-  @UseGuards(AuthGuard)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.contractsService.remove(id);
+  @MessagePattern('contracts.update')
+  update(
+    @Payload() payload: { id: number; updateContractDto: UpdateContractDto },
+  ) {
+    return this.contractsService.update(payload.id, payload.updateContractDto);
+  }
+
+  @MessagePattern('contracts.remove')
+  remove(@Payload() payload: { id: number }) {
+    return this.contractsService.remove(payload.id);
   }
 }

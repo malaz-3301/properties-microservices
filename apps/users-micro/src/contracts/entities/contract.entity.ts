@@ -1,4 +1,3 @@
-
 import {
   Column,
   CreateDateColumn,
@@ -15,7 +14,6 @@ import { User } from '../../users/entities/user.entity';
 export class Contract {
   @PrimaryGeneratedColumn()
   id: number;
-  
 
   @CreateDateColumn({ type: 'timestamp', default: () => CURRENT_TIMESTAMP })
   expireIn: Date;
@@ -23,14 +21,22 @@ export class Contract {
   @ManyToOne(() => Property, (property) => property.contacts)
   property: Property;
 
-  @ManyToOne(() => User, (user) => user.contracts)
-  user: User;
+  @Column()
+  username: string;
 
+  @Column()
+  userPhone: string;
 
-  @Column({type : 'float'})
+  @Column()
+  ownername: string;
+
+  @Column()
+  ownerPhone: string;
+
+  @Column({ type: 'float' })
   price: number;
 
-    @CreateDateColumn({ type: 'timestamp', default: () => CURRENT_TIMESTAMP })
+  @CreateDateColumn({ type: 'timestamp', default: () => CURRENT_TIMESTAMP })
   createdAt: Date;
 
   @ManyToOne(() => User, (user: User) => user.agencyProperties)

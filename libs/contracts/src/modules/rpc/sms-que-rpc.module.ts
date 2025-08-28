@@ -12,7 +12,7 @@ config({ path: '.env.development' });
         name: 'SMS_SERVICE',
         transport: Transport.RMQ, //AMQP (Advanced Message Queuing Protocol)
         options: {
-          urls: [process.env.RABBITMQ_URL ?? 'amqp://rabbitmq:5672'],
+          urls: [process.env.RABBITMQ_URL ?? 'amqp://localhost:5672'],
           queue: 'sms_queue',
           queueOptions: { durable: true },
           // خطأ تضعها هنا noAck: false,

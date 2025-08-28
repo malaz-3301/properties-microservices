@@ -35,7 +35,6 @@ export class PropertiesUpdateProvider {
     private readonly usersClient: ClientProxy,
     @Inject('TRANSLATE_SERVICE')
     private readonly translateClient: ClientProxy,
-    private usersGetProvider: UsersGetProvider, // محمد شيل هي
     @Inject('SMS_SERVICE') private readonly client2: ClientProxy,
     private i18n: I18nService,
   ) {}
