@@ -81,9 +81,6 @@ export class User {
   @OneToMany(() => Property, (property: Property) => property.agency)
   agencyProperties?: Property[];
 
-  @OneToMany(() => Contract, (contract: Contract) => contract.agency)
-  agencyContracts?: Contract[];
-
   @OneToMany(() => Vote, (vote: Vote) => vote.user)
   votes?: Vote[];
 
@@ -103,8 +100,6 @@ export class User {
   @OneToMany(() => Favorite, (favorite) => favorite.user)
   favorites: Favorite[];
 
-  @OneToMany(() => Contract, (contracts) => contracts.user)
-  contracts: Contract[];
   ////
   @ManyToOne(() => Plan, (plan: Plan) => plan.users)
   plan?: Plan;

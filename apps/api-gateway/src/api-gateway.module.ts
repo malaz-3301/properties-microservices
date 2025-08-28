@@ -4,7 +4,6 @@ import { AuthRpcModule } from '@malaz/contracts/modules/rpc/auth-rpc.module';
 import { ToUsersBannedController } from './to-users/to-banned/to-users-banned.controller';
 import { ToUsersUsersController } from './to-users/to-users/to-users-users.controller';
 import { ToUsersAuditController } from './to-users/to-audit/to-users-audit.controller';
-import { ToUsersContractsController } from './to-users/to-contracts/to-users-contracts.controller';
 import { ToCommercePlansController } from './to-commerce/to-plans/to-commerce-plans.controller';
 import { ToCommerceOrdersController } from './to-commerce/to-orders/to-commerce-orders.controller';
 import { ToPropertiesVotesController } from './to-properties/to-votes/to-properties-votes.controller';
@@ -36,6 +35,9 @@ import { UsersRpcMediaModule } from './media-req-rep/rpc/users-rpc-media/users-r
 import { PropertiesRpcMediaModule } from './media-req-rep/rpc/properties-rpc-media/properties-rpc-media.module';
 import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module';
 import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module';
+import { ToNotificationsController } from './to-notifications/to-notifications.controller';
+import { ContractsRpcModule } from '@malaz/contracts/modules/rpc/contracts-rpc.module';
+import { ToUsersContractsController } from './to-users/to-contracts/to-users-contracts.controller';
 
 @Module({
   imports: [
@@ -43,10 +45,13 @@ import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module'
     AnalyticsRpcModule,
     AuthRpcModule,
     CommerceRpcModule,
+    ContractsRpcModule,
     NotificationsRpcModule,
     PropertiesRpcModule,
+    NotificationsRpcModule,
     ReportsRpcModule,
     UsersRpcModule,
+    ContractsRpcModule,
     JwtConfigModule,
     ConfigSetModule,
     PropertiesHttpMediaModule,
@@ -67,6 +72,7 @@ import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module'
   controllers: [
     ApiGatewayController,
     ToAuthController,
+    ToNotificationsController,
     ToAnalyticsController,
     ToUsersBannedController,
     ToUsersUsersController,

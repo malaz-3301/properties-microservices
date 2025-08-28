@@ -9,11 +9,11 @@ config({ path: '.env.development' });
   imports: [
     ClientsModule.register([
       {
-        name: 'ANALYTICS_SERVICE',
+        name: 'CONTRACTS_SERVICE',
         transport: Transport.RMQ,
         options: {
           urls: [process.env.RABBITMQ_URL ?? 'amqp://localhost:5672'],
-          queue: 'analytics_queue',
+          queue: 'contracts_queue',
           queueOptions: {
             durable: true,
           },
@@ -23,4 +23,4 @@ config({ path: '.env.development' });
   ],
   exports: [ClientsModule],
 })
-export class AnalyticsRpcModule {}
+export class ContractsRpcModule {}

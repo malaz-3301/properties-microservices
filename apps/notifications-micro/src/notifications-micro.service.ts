@@ -19,6 +19,7 @@ import { Contract } from '../../users-micro/src/contracts/entities/contract.enti
 import { NotificationMicro } from './entities/notification-micro.entity';
 import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
+import { Property } from 'apps/properties-micro/src/properties/entities/property.entity';
 @Injectable()
 export class NotificationsMicroService {
   onModuleInit() {
@@ -34,12 +35,14 @@ export class NotificationsMicroService {
   constructor(
     @InjectRepository(NotificationMicro)
     private readonly notificationMicro: Repository<NotificationMicro>,
-    private readonly usersGetProvider: UsersGetProvider,
-    @Inject(forwardRef(() => ContractsService))
-    private readonly contractService: ContractsService,
+    // @Inject(forwardRef(() => ContractsService))
+    @Inject('CONTRACTS_SERVICE')
+    private readonly contractsClient: ClientProxy,
     private i18nService: I18nService,
     @Inject('USERS_SERVICE')
     private readonly userClient: ClientProxy,
+    @Inject('PROPERTIES_SERVICE')
+    private readonly propertiesClient: ClientProxy,
     @Inject('TRANSLATE_SERVICE')
     private readonly translateClient: ClientProxy,
     @Inject('SMS_SERVICE') private readonly client2: ClientProxy,
@@ -47,7 +50,9 @@ export class NotificationsMicroService {
   private readonly logger = new Logger(NotificationsMicroService.name);
   @Cron('0 30 11 * * *')
   async handleCron() {
-    const contracts = await this.contractService.expiredAfterWeek();
+    const contracts = await lastValueFrom(
+      await this.contractsClient.send('contracts.expiredAfterWeek', {}),
+    );
     for (let index = 0; index < contracts.length; index++) {
       await this.sendNotificationForAllSidesInProperties(
         contracts[index],
@@ -58,25 +63,28 @@ export class NotificationsMicroService {
   async create(createNotificationDto: CreateNotificationDto, userId: number) {
     const newNotification = this.notificationMicro.create({
       ...createNotificationDto,
+      usre_language_message: createNotificationDto.message,
+
       user: { id: userId },
       readAt: null,
       property: { id: createNotificationDto.propertyId },
     });
+    console.log('created notificatinos successfully');
     const user = await lastValueFrom(
       await this.userClient.send('users.findById', { id: userId }),
     );
     //  this.usersGetProvider.findById(userId);
-    newNotification.usre_language_message =
-      // await this.usersGetProvider.translate(
-      //   user.language,
-      //   createNotificationDto.message,
-      // );
-      await lastValueFrom(
-        await this.translateClient.send('translate.translate', {
-          language: user.language,
-          text: createNotificationDto.message,
-        }),
-      );
+    // newNotification.usre_language_message =
+    // await this.usersGetProvider.translate(
+    //   user.language,
+    //   createNotificationDto.message,
+    // );
+    // await lastValueFrom(
+    // await this.translateClient.send('translate.translate', {
+    //   language: user.language,
+    //   text: createNotificationDto.message,
+    // }),
+    // );
     await this.sendNotificationToDevice(
       user.token,
       createNotificationDto.title,
@@ -155,60 +163,78 @@ export class NotificationsMicroService {
     contract: Contract,
     message: string,
   ) {
-    const owner = await this.usersGetProvider.findById(
-      contract.property.owner.id,
-    );
-    const user = await this.usersGetProvider.findById(contract.user.id);
-    const agency = await this.usersGetProvider.findById(contract.agency.id);
-    const ownerMessage = await this.i18nService.t(`transolation.${message}`, {
-      lang: owner.language,
-    });
-    await this.create(
-      {
+    const property: Property = await lastValueFrom(
+      await this.propertiesClient.send('properties.getOwnerAndAgency', {
         propertyId: contract.property.id,
-        title: '',
-        message: `${ownerMessage} ${contract.expireIn}`,
-      },
-      owner.id,
+      }),
     );
-    console.log(ownerMessage);
-    this.client2.emit(
-      'create_user.sms',
-      new RmqRecordBuilder({
-        phone: user.phone,
-        message: `${ownerMessage}`,
-      })
-        .setOptions({ persistent: true })
-        .build(),
+    const owner = await lastValueFrom(
+      await this.userClient.send('users.findByPhone', {
+        phone: contract.ownerPhone,
+      }),
     );
-    const userMessage = await this.i18nService.t(`transolation.${message}`, {
-      lang: user.language,
-    });
-    await this.create(
-      {
-        propertyId: contract.property.id,
-        title: '',
-        message: `${userMessage} ${contract.expireIn}`,
-      },
-      user.id,
+    const user = await lastValueFrom(
+      await this.userClient.send('users.findByPhone', {
+        phone: contract.userPhone,
+      }),
     );
+    const agency = await lastValueFrom(
+      await this.userClient.send('users.findById', { id: contract.agency.id }),
+    );
+    if (owner) {
+      const ownerMessage = await this.i18nService.t(`transolation.${message}`, {
+        lang: owner.language,
+      });
+      await this.create(
+        {
+          propertyId: contract.property.id,
+          title: 'استئجار عقار',
+          message: `${ownerMessage} ${contract.expireIn}`,
+        },
+        owner.id,
+      );
+      console.log(ownerMessage);
+      this.client2.emit(
+        'create_user.sms',
+        new RmqRecordBuilder({
+          phone: user.phone,
+          message: `${ownerMessage}`,
+        })
+          .setOptions({ persistent: true })
+          .build(),
+      );
+    }
+    if (user) {
+      const userMessage = await this.i18nService.t(`transolation.${message}`, {
+        lang: user.language,
+      });
+      await this.create(
+        {
+          propertyId: contract.property.id,
+          title: 'استئجار عقار',
+          message: `${userMessage} ${contract.expireIn}`,
+        },
+        user.id,
+      );
+
+      console.log(userMessage);
+      this.client2.emit(
+        'create_user.sms',
+        new RmqRecordBuilder({
+          phone: user.phone,
+          message: `${userMessage}`,
+        })
+          .setOptions({ persistent: true })
+          .build(),
+      );
+    }
     const agencyMessage = await this.i18nService.t(`transolation.${message}`, {
       lang: agency.language,
     });
-    console.log(userMessage);
-    this.client2.emit(
-      'create_user.sms',
-      new RmqRecordBuilder({
-        phone: user.phone,
-        message: `${userMessage}`,
-      })
-        .setOptions({ persistent: true })
-        .build(),
-    );
     await this.create(
       {
         propertyId: contract.property.id,
-        title: '',
+        title: 'استئجار عقار',
         message: `${agencyMessage} ${contract.expireIn}`,
       },
       agency.id,
@@ -223,5 +249,6 @@ export class NotificationsMicroService {
         .setOptions({ persistent: true })
         .build(),
     );
+    return 'success';
   }
 }

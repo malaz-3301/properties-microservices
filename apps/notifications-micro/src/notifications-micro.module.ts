@@ -12,6 +12,8 @@ import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module'
 import { FromRpcToNotificationsModule } from './a-from-rpc-to-notifications/from-rpc-to-notifications.module';
 import { UsersMicroModule } from 'apps/users-micro/src/users-micro.module';
 import { TranslateRpcModule } from '@malaz/contracts/modules/rpc/translate-rpc.module';
+import { ContractsRpcModule } from '@malaz/contracts/modules/rpc/contracts-rpc.module';
+import { PropertiesRpcModule } from '@malaz/contracts/modules/rpc/properties-rpc.module';
 
 @Module({
   imports: [
@@ -20,8 +22,10 @@ import { TranslateRpcModule } from '@malaz/contracts/modules/rpc/translate-rpc.m
     forwardRef(() => AuthMicroModule),
     forwardRef(() => UsersMicroModule),
     UsersModule,
+    PropertiesRpcModule,
     JwtConfigModule,
     TranslateRpcModule,
+    ContractsRpcModule,
     ConfigModule,
     I18nSetModule,
     FromRpcToNotificationsModule,

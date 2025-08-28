@@ -44,7 +44,7 @@
   "country": "الدولة",
   "RejectMessage": "تم رفض العقار",
   "AcceptMessage": "تم قبول العقار",
-  "RentedSuccessfully": "تم استئجار العقار بنجاح",
+  "RentedSuccessfully": " تم استئجار العقار بنجاح حتى تاريخ",
   "EndsON": "ينتهي عقد إيجار العقار في",
   "Key": "رمز التحقق هو"
 }

@@ -23,7 +23,7 @@ import { FromRpcToUsersModule } from './a-from-rpc-to-users/from-rpc-to-users.mo
     GeoQueRpcModule,
     GlobalCacheModule,
     AuditModule,
-    forwardRef(()=>ContractsModule),
+    forwardRef(() => ContractsModule),
     AuditModule,
     GlobalCacheModule,
     UsersModule,
