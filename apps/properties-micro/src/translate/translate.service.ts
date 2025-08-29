@@ -77,10 +77,14 @@ export class TranslateService {
   getTranslatedProperties(properteis, language) {
     return properteis.map(function (property) {
       if (language == 'ar') {
+        console.log('gggggggggggg');
+        console.log('gggggggggggg');
         if (property.multi_description)
           property['description'] = property.multi_description['ar'];
         property['title'] = property.multi_title['ar'];
       } else if (language == 'en') {
+        console.log('eeeeeeeee');
+        console.log('eeeeeeeeeeee');
         if (property.multi_description)
           property['description'] = property.multi_description['en'];
         property['title'] = property.multi_title['en'];
@@ -89,6 +93,9 @@ export class TranslateService {
           property['description'] = property.multi_description['de'];
         property['title'] = property.multi_title['de'];
       }
+      console.log(property);
+      console.log('gggggggggggg');
+      console.log('gggggggggggg');
       return property;
     });
   }

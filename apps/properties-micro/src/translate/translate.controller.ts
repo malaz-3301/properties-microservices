@@ -30,9 +30,10 @@ export class TranslateController {
 
   @MessagePattern('translate.getTranslatedProperties')
   async getTranslatedProperties(@Payload() payload: { property; language }) {
+    const { property, language } = payload;
     return await this.translateService.getTranslatedProperties(
-      payload.property,
-      payload.language,
+      property,
+      language,
     );
   }
 

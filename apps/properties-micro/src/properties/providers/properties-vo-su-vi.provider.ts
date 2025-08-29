@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Property } from '../entities/property.entity';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { PriorityRatio } from '../entities/priority-ratio.entity';
 import { ideal, weights } from '@malaz/contracts/utils/constants';
+
 @Injectable()
 export class PropertiesVoSuViProvider {
   constructor(
@@ -12,14 +13,17 @@ export class PropertiesVoSuViProvider {
     @InjectRepository(PriorityRatio)
     private priorityRatioRepository: Repository<PriorityRatio>,
   ) {}
+
   //VotesModule
   async changeVotesNum(proId: number, value: number) {
     await this.propertyRepository.increment({ id: proId }, 'voteScore', value);
   }
+
   //ViewsModule
   async changeViewsNum(proId: number) {
     await this.propertyRepository.increment({ id: proId }, 'viewCount', 1);
   }
+
   async computeSuitabilityRatio(property: Property, manager?: EntityManager) {
     const repository = manager
       ? manager.getRepository(Property)
@@ -52,14 +56,13 @@ export class PropertiesVoSuViProvider {
     let priceScore = 1 - (property.price - minPrice) / sub;
     console.log(minPrice);
     priceScore = Math.max(0, Math.min(1, priceScore));
-    
+
     score += weights.price * priceScore;
     // ideal score = 100
     //عمل النسبة من 50 , و تخزينها
     console.log('eeeeeeeeeeeeeeeeeeeeeeeeeeee');
     property.priorityRatio = this.priorityRatioRepository.create();
     property.priorityRatio.suitabilityRatio = score / 2;
-    console.log('fffffffffffffffffffffffffffffff');
     property.primacy += score / 2;
     console.log('compute');
     return await repository.save(property);

@@ -367,10 +367,15 @@ export class PropertiesGetProvider {
     console.log(pageNum);
     console.log(numPerPage);
     console.log(numPerPage * (pageNum - 1));
+
     let properties: Property[] = await this.propertyRepository.find({
       where,
-      skip: numPerPage * (pageNum - 1), //pagination
-      take: numPerPage,
+      ...(numPerPage && pageNum
+        ? {
+            skip: numPerPage * (pageNum - 1), //pagination
+            take: numPerPage,
+          }
+        : {}),
       relations: { agency: true, favorites: true },
       select: {
         favorites: { id: true },
@@ -401,6 +406,13 @@ export class PropertiesGetProvider {
 
       order,
     });
+    if (!properties || properties.length === 0) {
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'No properties found',
+      });
+    }
+
     if (userId) {
       const user = await lastValueFrom(
         this.usersClient
@@ -408,11 +420,15 @@ export class PropertiesGetProvider {
           .pipe(retry(2), timeout(5000)),
       );
       if (!user) {
-        throw new NotFoundException();
+        throw new RpcException({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'No users found',
+        });
       }
       // this.getTranslatedProperty(properties[i], user.language);
+
       properties = await lastValueFrom(
-        await this.translateClient.send('translate.getTranslatedProperties', {
+        this.translateClient.send('translate.getTranslatedProperties', {
           property: properties,
           language: user.language,
         }),
