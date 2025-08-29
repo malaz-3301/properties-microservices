@@ -1,4 +1,5 @@
 import {
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -16,7 +17,7 @@ import { Language, UserType } from '@malaz/contracts/utils/enums';
 import { User } from '../../users-micro/src/users/entities/user.entity';
 import { UsersOtpProvider } from '../../users-micro/src/users/providers/users-otp.provider';
 import { BannedService } from '../../users-micro/src/banned/banned.service';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { I18nService } from 'nestjs-i18n';
 import { lastValueFrom, retry, timeout } from 'rxjs';
 
@@ -40,21 +41,28 @@ export class AuthMicroService {
    */
   async login(loginUserDto: LoginUserDto) {
     const { phone, username, password } = loginUserDto;
-    console.log('babba');
-
     const user = phone //if بطريقة عمك ملاز
       ? await this.usersRepository.findOneBy({ phone: phone })
       : await this.usersRepository.findOneBy({ username: username });
     if (!user) {
-      throw new NotFoundException('User Not Found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'User Not Found',
+      });
     }
     await this.bannedService.checkBlock(user?.id);
     const isPass = await bcrypt.compare(password, user.password);
     if (!isPass) {
-      throw new UnauthorizedException('Password is incorrect');
+      throw new RpcException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'Password is incorrect',
+      });
     }
     if (!user.isAccountVerified) {
-      throw new UnauthorizedException('Your account has not been verified');
+      throw new RpcException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'Your account has not been verified',
+      });
     }
     const accessToken = await this.jwtService.signAsync({
       id: user.id,

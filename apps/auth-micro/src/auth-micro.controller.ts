@@ -18,7 +18,6 @@ export class AuthMicroController {
 
   @MessagePattern('auth.login')
   login(@Payload() loginUserDto: LoginUserDto) {
-    console.log('rpc');
     return this.authService.login(loginUserDto);
   }
 

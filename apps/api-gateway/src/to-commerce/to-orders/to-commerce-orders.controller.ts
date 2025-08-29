@@ -19,7 +19,7 @@ import { SpaceRemitDto } from '@malaz/contracts/dtos/commerce/orders/space-remit
 import { ClientProxy } from '@nestjs/microservices';
 import { catchError, retry, timeout } from 'rxjs';
 
-@Controller('orders')
+@Controller('webhook')
 export class ToCommerceOrdersController {
   constructor(
     @Inject('COMMERCE_SERVICE') private readonly commerceClient: ClientProxy,
@@ -67,16 +67,12 @@ export class ToCommerceOrdersController {
     @Req() req: Request,
     @Headers('stripe-signature') signature: string,
   ) {
+    console.log('createHooook');
     const body = req.body;
+
     return this.commerceClient
       .send('orders.createHook', { body, signature })
-      .pipe(
-        retry(2),
-        timeout(5000),
-        catchError((err) => {
-          throw err;
-        }),
-      );
+      .pipe(retry(2), timeout(5000));
   }
 
   @Post('info')

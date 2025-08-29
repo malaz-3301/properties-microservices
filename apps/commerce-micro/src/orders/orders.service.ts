@@ -18,7 +18,7 @@ import { firstValueFrom, lastValueFrom, retry, timeout } from 'rxjs';
 import { OrderStatus } from '@malaz/contracts/utils/enums';
 import { SpaceRemitDto } from '@malaz/contracts/dtos/commerce/orders/space-remit.dto';
 import { CreatePlanOrderDto } from '@malaz/contracts/dtos/commerce/orders/create-plan-order.dto';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { CreateCommOrderDto } from '@malaz/contracts/dtos/commerce/orders/create-comm-order.dto';
 
 @Injectable()
@@ -123,6 +123,10 @@ export class OrdersService {
       this.configService.get<string>('STRIPE_WEBHOOK_SECRET') ?? '';
     let event: Stripe.Event | undefined;
     //فك تشفير الجلسة
+    console.log('aaaaaaaaaaaa');
+    console.log(body);
+    console.log(signature);
+    console.log(webhookSecret);
     try {
       event = this.stripe.webhooks.constructEvent(
         body,
@@ -130,10 +134,10 @@ export class OrdersService {
         webhookSecret,
       );
     } catch (error) {
-      throw new HttpException(
-        `Webhook Error: ${error.message}`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: `Webhook Error: ${error.message}`,
+      });
     }
 
     switch (event.type) {
@@ -143,6 +147,7 @@ export class OrdersService {
         const metadata = session.metadata ?? {};
 
         if (session.mode === 'subscription') {
+          console.log('ccccccc');
           const customerId = session.customer;
           const subscriptionId = session.subscription;
           const userId = parseInt(metadata.userId);
@@ -162,6 +167,7 @@ export class OrdersService {
       default:
         console.log(`${event.type}`);
     }
+    return 'Done ! Subscription ';
   }
 
   async setPlanExp(userId: number, planId: number) {

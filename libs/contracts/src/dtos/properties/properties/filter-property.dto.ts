@@ -1,17 +1,20 @@
 // src/items/dto/get-items-query.dto.ts
 import {
+  IsBoolean,
+  IsEnum,
+  IsNumber,
   IsOptional,
   IsString,
-  IsNumber,
-  IsEnum,
-  IsBoolean,
   Min,
 } from 'class-validator';
 
-
 import { Transform, Type } from 'class-transformer';
-import { Column } from 'typeorm';
-import { HeatingType, OrderDir, PropertyStatus, PropertyType } from '@malaz/contracts/utils/enums';
+import {
+  HeatingType,
+  OrderDir,
+  PropertyStatus,
+  PropertyType,
+} from '@malaz/contracts/utils/enums';
 
 export class FilterPropertyDto {
   @IsOptional()
@@ -94,7 +97,7 @@ export class FilterPropertyDto {
   isFloor: boolean;
 
   @IsOptional()
-  @Min(1) // رقم الصفحة علاقل واحد
+  @Min(0) // رقم الصفحة علاقل واحد
   @Type(() => Number)
   pageNum: number;
 
