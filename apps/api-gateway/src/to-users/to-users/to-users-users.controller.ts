@@ -99,7 +99,7 @@ export class ToUsersUsersController {
   getOneAgency(@Param('agencyId', ParseIntPipe) agencyId: number) {
     return this.usersClient
       .send('users.getOneAgency', { agencyId })
-      .pipe(retry(2), timeout(5000));
+      .pipe(retry(2), timeout(10000));
   }
 
   @Get('pro/:id')

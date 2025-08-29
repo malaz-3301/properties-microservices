@@ -62,7 +62,7 @@ export abstract class Property extends Estate {
 
   @OneToOne(() => PriorityRatio, (priorityRatio) => priorityRatio.property, {
     cascade: true,
-    eager: false,
+    eager: true,
   })
   priorityRatio: PriorityRatio;
 
@@ -108,7 +108,6 @@ export abstract class Property extends Estate {
   @Column({ default: 0 })
   viewCount: number;
 
-  @Column()
   @CreateDateColumn({ type: 'timestamp', default: () => CURRENT_TIMESTAMP })
   createdAt: Date;
   @UpdateDateColumn({

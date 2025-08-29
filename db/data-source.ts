@@ -17,6 +17,7 @@ import { View } from '../apps/properties-micro/src/views/entities/view.entity';
 import { Order } from '../apps/commerce-micro/src/orders/entities/order.entity';
 import { OtpEntity } from '../apps/users-micro/src/users/entities/otp.entity';
 import { Property } from '../apps/properties-micro/src/properties/entities/property.entity';
+import { Honeypot } from '../apps/api-gateway/src/honeypot/entities/honeypot.entity';
 
 //dotenv config
 
@@ -49,6 +50,7 @@ export const dataSourceOptions: DataSourceOptions = {
     Statistics,
     PriorityRatio,
     Banned,
+    Honeypot,
   ],
   migrations: ['dist/db/migrations/*.js'],
 

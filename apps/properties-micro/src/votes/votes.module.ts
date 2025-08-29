@@ -8,15 +8,15 @@ import { PropertiesModule } from '../properties/properties.module';
 import { Property } from '../properties/entities/property.entity';
 
 import { VotesGetProvider } from './providers/votes-get.provider';
-import { User } from '../../../users-micro/src/users/entities/user.entity';
 import { UsersModule } from '../../../users-micro/src/users/users.module';
 import { AuditModule } from '../../../users-micro/src/audit/audit.module';
+import { PriorityRatio } from '../properties/entities/priority-ratio.entity';
 
 @Module({
   imports: [
     UsersModule,
     AuditModule,
-    TypeOrmModule.forFeature([Vote, Property, User]),
+    TypeOrmModule.forFeature([Vote, Property, PriorityRatio]),
     forwardRef(() => PropertiesModule),
   ],
   controllers: [VotesController],

@@ -23,4 +23,9 @@ export class DuplicateController {
       payload.role,
     );
   }
+
+  @MessagePattern('properties.getAgencyAndPros')
+  async getAgencyPros(@Payload() payload: { agencyId: number }) {
+    return await this.propertiesGetProvider.getProsByAgency(payload.agencyId);
+  }
 }

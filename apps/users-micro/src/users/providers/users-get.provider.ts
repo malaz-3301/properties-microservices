@@ -15,7 +15,8 @@ import { createHash } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { Language, UserType } from '@malaz/contracts/utils/enums';
 import { FilterUserDto } from '@malaz/contracts/dtos/users/users/filter-user.dto';
-import { RpcException } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class UsersGetProvider {
@@ -26,6 +27,8 @@ export class UsersGetProvider {
     private readonly agencyInfoRepository: Repository<AgencyInfo>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly configService: ConfigService,
+    @Inject('PROPERTIES_SERVICE')
+    private readonly propertiesClient: ClientProxy,
   ) {}
 
   // لاعد تسجل otp
@@ -96,11 +99,18 @@ export class UsersGetProvider {
       where: { id: agencyId },
       relations: ['agencyInfo'],
     });
+    const properties = await lastValueFrom(
+      this.propertiesClient.send('properties.getAgencyAndPros', {
+        agencyId: agencyId,
+      }),
+    );
     if (!user) {
       throw new NotFoundException('User Not Found');
     }
-    console.log(user.agencyInfo);
-    return user;
+    return {
+      ...user,
+      properties,
+    };
   }
 
   async getOneAgencyInfo(agencyId: number) {

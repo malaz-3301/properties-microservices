@@ -1,5 +1,3 @@
-import { Column } from 'typeorm';
-
 export enum UserType {
   SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
@@ -112,5 +110,33 @@ export enum GeoEnum {
 export enum Language {
   ARABIC = 'ar',
   ENGLISH = 'en',
-  Germany = 'de'
+  Germany = 'de',
 }
+
+export const HoneyPotPaths = [
+  '/admin',
+  '/admin/login',
+  '/dashboard',
+  '/wp-admin',
+  '/manager',
+  '/login.php',
+  '/phpmyadmin',
+  '/administrator',
+  '/cpanel',
+  '/user/login', // تطبيقات CMS
+  '/wp-login.php', // ووردبريس
+  '/config.php', // ملفات إعدادات
+  '/setup.php', // إعدادات أنظمة قديمة
+  '/install.php', // محاولات تثبيت غير مصرح بها
+  '/.env', // محاولة سرقة ملفات البيئة
+  '/backup', // ملفات النسخ الاحتياطية
+  '/backup.zip',
+  '/dbadmin', // أدوات إدارة قاعدة البيانات
+  '/mysql', // محاولات الوصول لقاعدة MySQL
+  '/wp-content/plugins', // استهداف الثغرات في الإضافات
+  '/wp-content/themes', // استهداف الثغرات في الثيمات
+  '/xmlrpc.php', // ووردبريس
+  '/adminer.php', // أداة إدارة قواعد بيانات
+  '/shell.php', // محاولة رفع شيل
+  '/uploads/shell.php', // محاولة رفع شيل
+];
