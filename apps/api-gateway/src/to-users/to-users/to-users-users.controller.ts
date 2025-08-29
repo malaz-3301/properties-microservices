@@ -37,20 +37,16 @@ export class ToUsersUsersController {
   @Post('register')
   async register(@Body() registerUserDto: RegisterUserDto) {
     console.log('fklsd');
-    return this.usersClient.send('users.register', registerUserDto).pipe(
-      retry(2),
-      timeout(5000),
-      catchError((err) => {
-        throw err;
-      }),
-    );
+    return this.usersClient
+      .send('users.register', registerUserDto)
+      .pipe(retry(2), timeout(10000));
   }
 
   @Post('back')
   async register_back_users() {
     return this.usersClient
       .send('users.register_back', {})
-      .pipe(retry(2), timeout(5000));
+      .pipe(retry(2), timeout(10000));
   }
 
   @Post('verify/:id')

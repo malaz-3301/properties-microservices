@@ -40,7 +40,7 @@ export class ToPropertiesOnPropertiesController {
         createPropertyDto,
         owner: owner.id,
       })
-      .pipe(retry(2), timeout(5000));
+      .pipe(retry(2), timeout(10000));
   }
 
   @Get('my')
@@ -67,7 +67,7 @@ export class ToPropertiesOnPropertiesController {
         ownerId: owner.id,
         updatePropertyDto,
       })
-      .pipe(retry(2), timeout(5000));
+      .pipe(retry(2), timeout(10000));
   }
 
   @Delete(':proId')

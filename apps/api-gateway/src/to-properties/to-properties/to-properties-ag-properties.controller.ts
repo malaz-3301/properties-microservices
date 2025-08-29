@@ -38,7 +38,7 @@ export class ToPropertiesAgPropertiesController {
   ) {
     return this.propertiesClient
       .send('properties.getAgencyPros', { query, agencyId: agency.id })
-      .pipe(retry(2), timeout(5000));
+      .pipe(retry(2), timeout(10000));
   }
 
   @Get('pending')
@@ -51,7 +51,7 @@ export class ToPropertiesAgPropertiesController {
   ) {
     return this.propertiesClient
       .send('properties.getPendingAgency', { query, agencyId: agency.id })
-      .pipe(retry(2), timeout(5000));
+      .pipe(retry(2), timeout(10000));
   }
 
   @Patch(':proId')
@@ -69,7 +69,7 @@ export class ToPropertiesAgPropertiesController {
         agencyId: agency.id,
         editProAgencyDto,
       })
-      .pipe(retry(2), timeout(5000));
+      .pipe(retry(2), timeout(10000));
   }
 
   @Patch('acc/:proId')
@@ -82,7 +82,7 @@ export class ToPropertiesAgPropertiesController {
   ) {
     return this.propertiesClient
       .send('properties.acceptAgency', { proId, agencyId: agency.id })
-      .pipe(retry(2), timeout(5000));
+      .pipe(retry(2), timeout(10000));
   }
 
   @Patch('rej/:id')

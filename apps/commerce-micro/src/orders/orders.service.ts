@@ -1,10 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Plan } from '../plans/entities/plan.entity';
@@ -45,7 +39,10 @@ export class OrdersService {
       id: createPlanOrderDto.planId,
     });
     if (!plan) {
-      throw new UnauthorizedException('Unauthorized');
+      throw new RpcException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: 'Unauthorized',
+      });
     }
     const unit = plan?.planDuration.split('_')[1] ?? null;
 
