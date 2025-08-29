@@ -16,6 +16,7 @@ import { TranslateModule } from './translate/translate.module';
 
 @Module({
   imports: [
+    TranslateRpcModule,
     ProGeoModule,
     TranslateModule,
     GeoQueRpcModule,

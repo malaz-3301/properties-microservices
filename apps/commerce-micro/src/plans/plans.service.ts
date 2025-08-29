@@ -1,17 +1,11 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Plan } from './entities/plan.entity';
 import { DataSource, In, Not, Repository } from 'typeorm';
 import { CreatePlanDto } from '@malaz/contracts/dtos/commerce/plans/create-plan.dto';
-import { Language, PlanType } from '@malaz/contracts/utils/enums';
+import { PlanType } from '@malaz/contracts/utils/enums';
 import { UpdatePlanDto } from '@malaz/contracts/dtos/commerce/plans/update-plan.dto';
-import { UsersGetProvider } from '../../../users-micro/src/users/providers/users-get.provider';
 import { lastValueFrom, retry, timeout } from 'rxjs';
 import { ClientProxy } from '@nestjs/microservices';
 
@@ -33,11 +27,14 @@ export class PlansService {
     let plan = this.planRepository.create(createPlanDto);
     console.log('mohammed plan');
     plan = await lastValueFrom(
-      await this.translateClient.send('translate.createAndUpdatePlan', {
-        plan: plan,
-        planDto: createPlanDto,
-      }),
+      this.translateClient
+        .send('translate.createAndUpdatePlan', {
+          plan: plan,
+          planDto: createPlanDto,
+        })
+        .pipe(retry(2), timeout(10000)),
     );
+    console.log('mohammed plansss');
     // await this.createAndUpdatePlan(plan, createPlanDto);
     return this.planRepository.save(plan);
   }

@@ -5,9 +5,11 @@ import { PlansModule } from './plans/plans.module';
 import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module';
 import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module';
 import { PropertiesRpcModule } from '@malaz/contracts/modules/rpc/properties-rpc.module';
+import { TranslateRpcModule } from '@malaz/contracts/modules/rpc/translate-rpc.module';
 
 @Module({
   imports: [
+    TranslateRpcModule,
     PlansModule,
     OrdersModule,
     JwtConfigModule,

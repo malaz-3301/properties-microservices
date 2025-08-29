@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  forwardRef,
   Module,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,17 +7,17 @@ import { MulterModule } from '@nestjs/platform-express';
 
 import { diskStorage } from 'multer';
 import e, { Express } from 'express';
-import { PropertiesModule } from '../../../../../apps/properties-micro/src/properties/properties.module';
-import { PropertiesService } from '../../../../../apps/properties-micro/src/properties/properties.service';
-
+import { PropertiesRpcModule } from '@malaz/contracts/modules/rpc/properties-rpc.module';
+import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom, retry, timeout } from 'rxjs';
 
 @Module({
   imports: [
     MulterModule.registerAsync({
-      imports: [forwardRef(() => PropertiesModule)],
-      inject: [PropertiesService],
+      imports: [PropertiesRpcModule],
+      inject: ['PROPERTIES_SERVICE'],
       // closure
-      useFactory: (propertiesService: PropertiesService) => {
+      useFactory: (propertiesClient: ClientProxy) => {
         return {
           storage: diskStorage({
             destination: './images/properties',
@@ -49,16 +48,22 @@ import { PropertiesService } from '../../../../../apps/properties-micro/src/prop
             const proId = Number(req.params.id);
             const userId = Number(req.payload.id);
 
-            propertiesService
-              .getUserPro(proId, userId, req.payload.userType)
-              .catch((err) => {
-                callback(
-                  new UnauthorizedException(
-                    'Dont Try Property is not yours Or Not found',
-                  ),
-                  false,
-                ); //);
-              });
+            await lastValueFrom(
+              propertiesClient
+                .send('properties.getUserPro', {
+                  proId: proId,
+                  userId: userId,
+                  role: req.payload.userType,
+                })
+                .pipe(retry(2), timeout(5000)),
+            ).catch((err) => {
+              callback(
+                new UnauthorizedException(
+                  'Dont Try Property is not yours Or Not found',
+                ),
+                false,
+              ); //);
+            });
           },
           limits: { fileSize: 1024 * 1024 * 2 },
         };

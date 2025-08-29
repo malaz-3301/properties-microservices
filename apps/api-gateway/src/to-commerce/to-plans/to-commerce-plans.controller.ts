@@ -17,7 +17,7 @@ import { AuthGuard } from '@malaz/contracts/guards/auth.guard';
 import { CurrentUser } from '@malaz/contracts/decorators/current-user.decorator';
 import { JwtPayloadType } from '@malaz/contracts/utils/constants';
 import { ClientProxy } from '@nestjs/microservices';
-import { catchError, retry, timeout } from 'rxjs';
+import { retry, timeout } from 'rxjs';
 
 @Controller('plans')
 export class ToCommercePlansController {
@@ -30,13 +30,9 @@ export class ToCommercePlansController {
   @Roles(UserType.SUPER_ADMIN, UserType.Financial)
   create(@Body() createPlanDto: CreatePlanDto) {
     console.log('controller');
-    return this.commerceClient.send('plans.create', createPlanDto).pipe(
-      retry(2),
-      timeout(5000),
-      catchError((err) => {
-        throw err;
-      }),
-    );
+    return this.commerceClient
+      .send('plans.create', createPlanDto)
+      .pipe(retry(2), timeout(20000));
   }
 
   @Post('back')

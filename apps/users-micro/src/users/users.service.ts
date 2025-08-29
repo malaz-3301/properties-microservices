@@ -122,15 +122,19 @@ export class UsersService {
     return this.usersImgProvider.removeProfileImage(id);
   }
 
-  async upgrade(
+  async upgradeToAgency(
     userId: number,
     filenames: string[],
     agencyCommissionRate: number,
+    lat: number,
+    lon: number,
   ) {
-    return this.usersImgProvider.upgrade(
+    return this.usersImgProvider.upgradeToAgency(
       userId,
       filenames,
       agencyCommissionRate,
+      lat,
+      lon,
     );
   }
 

@@ -2,19 +2,13 @@ import {
   HttpStatus,
   Inject,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Property } from '../entities/property.entity';
 import { Repository } from 'typeorm';
 import { PropertiesGetProvider } from './properties-get.provider';
-import {
-  Language,
-  PropertyStatus,
-  UserType,
-} from '@malaz/contracts/utils/enums';
-import { UsersGetProvider } from '../../../../users-micro/src/users/providers/users-get.provider';
+import { PropertyStatus, UserType } from '@malaz/contracts/utils/enums';
 import { UpdatePropertyDto } from '@malaz/contracts/dtos/properties/properties/update-property.dto';
 import { EditProAgencyDto } from '@malaz/contracts/dtos/properties/properties/edit-pro-agency.dto';
 import {
@@ -23,7 +17,7 @@ import {
   RpcException,
 } from '@nestjs/microservices';
 import { I18nService } from 'nestjs-i18n';
-import { firstValueFrom, lastValueFrom, retry, timeout } from 'rxjs';
+import { lastValueFrom, retry, timeout } from 'rxjs';
 
 @Injectable()
 export class PropertiesUpdateProvider {
@@ -170,11 +164,12 @@ export class PropertiesUpdateProvider {
     let property = await this.propertiesGetProvider.findById(proId);
     // await this.updateTranslatedProperty(property, update);
     property = await lastValueFrom(
-      await this.translateClient.send('translate.updateTranslatedProperty', {
+      this.translateClient.send('translate.updateTranslatedProperty', {
         property: property,
         propertyDto: update,
       }),
     );
+
     return this.propertyRepository.save({ ...property, ...update });
   }
 

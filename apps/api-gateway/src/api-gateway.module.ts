@@ -31,8 +31,6 @@ import { ToPropertiesAgPropertiesController } from './to-properties/to-propertie
 import { ToPropertiesAdPropertiesController } from './to-properties/to-properties/to-properties-ad-properties.controller';
 import { PropertiesHttpMediaModule } from './media-req-rep/http/properties-http-media/properties-http-media.module';
 import { UsersHttpMediaModule } from './media-req-rep/http/users-http-media/users-http-media.module';
-import { UsersRpcMediaModule } from './media-req-rep/rpc/users-rpc-media/users-rpc-media.module';
-import { PropertiesRpcMediaModule } from './media-req-rep/rpc/properties-rpc-media/properties-rpc-media.module';
 import { JwtConfigModule } from '@malaz/contracts/modules/set/jwt-config.module';
 import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module';
 import { ToNotificationsController } from './to-notifications/to-notifications.controller';
@@ -55,9 +53,7 @@ import { ToUsersContractsController } from './to-users/to-contracts/to-users-con
     JwtConfigModule,
     ConfigSetModule,
     PropertiesHttpMediaModule,
-    PropertiesRpcMediaModule,
     UsersHttpMediaModule,
-    UsersRpcMediaModule,
     ThrottlerModule.forRoot({
       //first policy
       throttlers: rateLimiting,
@@ -66,8 +62,6 @@ import { ToUsersContractsController } from './to-users/to-contracts/to-users-con
 
     PropertiesHttpMediaModule,
     UsersHttpMediaModule,
-    UsersRpcMediaModule,
-    PropertiesRpcMediaModule,
   ],
   controllers: [
     ApiGatewayController,

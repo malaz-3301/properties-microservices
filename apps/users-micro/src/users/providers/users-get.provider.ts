@@ -32,7 +32,7 @@ export class UsersGetProvider {
   public async findById(id: number) {
     const user = await this.usersRepository.findOne({
       where: { id: id },
-      relations: { plan: true },
+      relations: { plan: true, agencyInfo: true },
     });
     if (!user) {
       throw new RpcException({
@@ -104,7 +104,10 @@ export class UsersGetProvider {
       user_id: agencyId,
     });
     if (!agencyInfo) {
-      throw new NotFoundException('User Not Found');
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'No users found',
+      });
     }
     return agencyInfo;
   }
@@ -175,6 +178,7 @@ export class UsersGetProvider {
       });
     return translatedText;
   }
+
   public async findByPhone(phone: string) {
     const user = await this.usersRepository.findOne({
       where: { phone },

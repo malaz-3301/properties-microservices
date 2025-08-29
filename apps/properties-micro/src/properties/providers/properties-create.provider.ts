@@ -6,13 +6,8 @@ import { PropertiesVoSuViProvider } from './properties-vo-su-vi.provider';
 import { ClientProxy } from '@nestjs/microservices';
 import * as console from 'node:console';
 import { CreatePropertyDto } from '@malaz/contracts/dtos/properties/properties/create-property.dto';
-import {
-  Language,
-  PropertyStatus,
-  UserType,
-} from '@malaz/contracts/utils/enums';
-import { firstValueFrom, lastValueFrom, retry, timeout } from 'rxjs';
-import { UsersGetProvider } from '../../../../users-micro/src/users/providers/users-get.provider';
+import { PropertyStatus, UserType } from '@malaz/contracts/utils/enums';
+import { lastValueFrom, retry, timeout } from 'rxjs';
 import { PropertiesGetProvider } from './properties-get.provider';
 
 @Injectable()
@@ -61,6 +56,7 @@ export class PropertiesCreateProvider {
         })
         .pipe(retry(2), timeout(5000)),
     );
+
     const { pointsDto } = createPropertyDto;
     /*    const location =
           (await this.geolocationService.reverse_geocoding(
@@ -88,7 +84,7 @@ export class PropertiesCreateProvider {
       }
       // await this.createTranslatedProperty(newProperty, createPropertyDto);
       newProperty = await lastValueFrom(
-        await this.translateClient.send('translate.createTranslatedProperty', {
+        this.translateClient.send('translate.createTranslatedProperty', {
           property: newProperty,
           propertyDto: createPropertyDto,
         }),

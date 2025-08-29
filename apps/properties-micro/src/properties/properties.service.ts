@@ -118,8 +118,8 @@ export class PropertiesService {
     return this.propertiesDelProvider.deleteProById(id);
   }
 
-  async setSingleImg(id: number, userId: number, file: Express.Multer.File) {
-    return this.propertiesImgProvider.setSingleImg(id, userId, file);
+  async setSingleImg(id: number, userId: number, filename: string) {
+    return this.propertiesImgProvider.setSingleImg(id, userId, filename);
   }
 
   async setMultiImg(id: number, userId: number, filenames: string[]) {
@@ -143,10 +143,6 @@ export class PropertiesService {
   /*  async removeSingleImage(id: number, userId: number) {
       return this.propertiesImgProvider.removeSingleImage(id, userId);
     }*/
-
-  async removeAnyImg(id: number, userId: number, imageName: string) {
-    return this.propertiesImgProvider.removeAnyImg(id, userId, imageName);
-  }
 
   async computePropertySuitability(
     property: Property,

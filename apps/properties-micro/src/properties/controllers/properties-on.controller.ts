@@ -2,10 +2,8 @@ import { Controller } from '@nestjs/common';
 import { PropertiesService } from '../properties.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreatePropertyDto } from '@malaz/contracts/dtos/properties/properties/create-property.dto';
-import { JwtPayloadType } from '@malaz/contracts/utils/constants';
 import { FilterPropertyDto } from '@malaz/contracts/dtos/properties/properties/filter-property.dto';
 import { UpdatePropertyDto } from '@malaz/contracts/dtos/properties/properties/update-property.dto';
-import { DeleteUserDto } from '@malaz/contracts/dtos/users/users/delete-user.dto';
 
 @Controller('properties-on')
 export class PropertiesOnController {
@@ -73,56 +71,4 @@ export class PropertiesOnController {
       payload.password,
     );
   }
-
-  /*  // رفع صورة واحدة
-    @MessagePattern('properties.upload.single')مؤقت مؤقت
-    async uploadSingleImg(
-      @Payload() payload: { id: number; owner: JwtPayloadType; filename?: string },
-    ) {
-      return this.propertiesService.setSingleImg(payload.id, payload.owner.id, payload.filename);
-    }*/
-
-  // رفع عدة صور
-  @MessagePattern('properties.uploadMultiImg')
-  async uploadMultiImg(
-    @Payload()
-    payload: {
-      id: number;
-      owner: JwtPayloadType;
-      filenames?: string[];
-    },
-  ) {
-    return this.propertiesService.setMultiImg(
-      payload.id,
-      payload.owner.id,
-      payload.filenames || [],
-    );
-  }
-
-  // رفع بانوراما متعددة
-  @MessagePattern('properties.uploadMultiPanorama')
-  async uploadMultiPanorama(
-    @Payload()
-    payload: {
-      id: number;
-      owner: JwtPayloadType;
-      panoramaNames: string[];
-      filenames: string[];
-    },
-  ) {
-    return this.propertiesService.setMultiPanorama(
-      payload.id,
-      payload.owner.id,
-      payload.panoramaNames,
-      payload.filenames,
-    );
-  }
-
-  /*  // حذف أي صورة لعقار
-  @MessagePattern('properties.removeAnyImg')مؤقت مؤقت
-  async removeAnyImg(
-    @Payload() payload: { id: number; imageName: string; user?: JwtPayloadType },
-  ) {
-    return this.propertiesService.removeAnyImg(payload.id, payload.user?.id, payload.imageName);
-  }*/
 }

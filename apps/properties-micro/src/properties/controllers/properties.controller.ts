@@ -2,7 +2,6 @@ import { Controller } from '@nestjs/common';
 import { PropertiesService } from '../properties.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { FilterPropertyDto } from '@malaz/contracts/dtos/properties/properties/filter-property.dto';
-import { JwtPayloadType } from '@malaz/contracts/utils/constants';
 import { PropertyStatus } from '@malaz/contracts/utils/enums';
 import { NearProDto } from '@malaz/contracts/dtos/properties/properties/near-pro.dto';
 import { GeoProDto } from '@malaz/contracts/dtos/properties/properties/geo-pro.dto';
@@ -32,6 +31,7 @@ export class PropertiesController {
       payload.userId,
     );
   }
+
   // عقارات قريبة مني
   @MessagePattern('properties.getNearMe')
   async getProNearMe(
@@ -55,66 +55,72 @@ export class PropertiesController {
     return this.propertiesService.getOnePro(payload.proId, payload.userId);
   }
 
-  /*  // إرجاع معلومات ملف الصورة
-    @MessagePattern('properties.getImage') // مؤقت رجعها من gateway
-    async showUploadedImage(
-      @Payload() payload: { imageName: string },
+  @MessagePattern('properties.uploadSingleImg')
+  async uploadSingleImg(
+    @Payload()
+    payload: {
+      proId: number;
+      userId: number;
+      filename: string;
+    },
+  ) {
+    return this.propertiesService.setSingleImg(
+      payload.proId,
+      payload.userId,
+      payload.filename,
+    );
+  }
+
+  // رفع عدة صور
+  @MessagePattern('properties.uploadMultiImg')
+  async uploadMultiImg(
+    @Payload()
+    payload: {
+      proId: number;
+      userId: number;
+      filenames?: string[];
+    },
+  ) {
+    return this.propertiesService.setMultiImg(
+      payload.proId,
+      payload.userId,
+      payload.filenames || [],
+    );
+  }
+
+  // رفع بانوراما متعددة
+  @MessagePattern('properties.uploadMultiPanorama')
+  async uploadMultiPanorama(
+    @Payload()
+    payload: {
+      proId: number;
+      userId: number;
+      panoramaNames: string[];
+      filenames: string[];
+    },
+  ) {
+    return this.propertiesService.setMultiPanorama(
+      payload.proId,
+      payload.userId,
+      payload.panoramaNames,
+      payload.filenames,
+    );
+  }
+
+  /*
+    @MessagePattern('properties.removeAnyImg')
+    async removeAnyImg(
+      @Payload()
+      payload: {
+        proId: number;
+        userId: number;
+        imageName: string;
+      },
     ) {
-      return this.propertiesService.getImageFileInfo(payload.imageName);
+      return this.propertiesService.removeAnyImg(
+        payload.proId,
+        payload.userId,
+        payload.imageName,
+      );
     }*/
-
-  // قبول عقار من الوكالة
-  // @MessagePattern('properties.acceptAgency')
-  // async acceptAgencyPro(
-  //   @Payload() payload: { proId: number; agency: JwtPayloadType },
-  // ) {
-  //   return this.propertiesService.acceptAgencyPro(
-  //     payload.proId,
-  //     payload.agency.id,
-  //   );
-  // }
-
-  // جلب عقارات الوكالة
-  // @MessagePattern('properties.getAgencyPros')
-  // async getAgencyPros(
-  //   @Payload() payload: { query: FilterPropertyDto; agencyId: number },
-  // ) {
-  //   return this.propertiesService.getAll(
-  //     payload.query,
-  //     payload.agencyId,
-  //     undefined,
-  //     payload.agencyId,
-  //   );
-  // }
-
-  /*
-  // حذف عقار بواسطة الوكالة — كانت معلّقة في الكود الأصلي (DELETE /delete)
-  // لو أردت تفعيلها: اعطها routing key مناسب مثل 'properties.agency.delete'
-  @MessagePattern('properties.agency.delete')
-  async deleteAgencyPro(
-    @Payload() payload: { proId: number; agency: JwtPayloadType },
-  ) {
-    return this.propertiesService.deleteProById(payload.proId);
-  }*/
-
-  /*
-
-  // قبول عقار (admin) — كانت معلّقة في الكود الأصلي
-  // payload المتوقع: { proId: number, acceptProAdminDto: AcceptProAdminDto }
-  @MessagePattern('properties.admin.accept')
-  async acceptProById(
-    @Payload() payload: { proId: number; acceptProAdminDto: any }, // AcceptProAdminDto
-  ) {
-    return this.propertiesService.acceptPro(payload.proId, payload.acceptProAdminDto);
-  }
-
-  // رفض عقار (admin) — كانت معلّقة في الكود الأصلي
-  // payload المتوقع: { id: number, rejectProAdminDto: RejectProAdminDto }
-  @MessagePattern('properties.admin.reject')
-  async rejectProById(
-    @Payload() payload: { id: number; rejectProAdminDto: any }, // RejectProAdminDto
-  ) {
-    return this.propertiesService.rejectPro(payload.id, payload.rejectProAdminDto);
-  }
-  */
 }

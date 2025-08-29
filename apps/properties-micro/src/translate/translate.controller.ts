@@ -1,16 +1,6 @@
-import { Controller, Inject, Logger } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { TranslateService } from './translate.service';
-import { GeolocationService } from '../geolocation/geolocation.service';
-import { PropertiesUpdateProvider } from '../properties/providers/properties-update.provider';
-import {
-  ClientProxy,
-  Ctx,
-  EventPattern,
-  MessagePattern,
-  Payload,
-  RmqContext,
-  RmqRecordBuilder,
-} from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller()
 export class TranslateController {
@@ -37,6 +27,7 @@ export class TranslateController {
       payload.language,
     );
   }
+
   @MessagePattern('translate.getTranslatedProperties')
   async getTranslatedProperties(@Payload() payload: { property; language }) {
     return await this.translateService.getTranslatedProperties(
@@ -44,6 +35,7 @@ export class TranslateController {
       payload.language,
     );
   }
+
   @MessagePattern('translate.createTranslatedProperty')
   async createTranslatedProperty(
     @Payload() payload: { property; propertyDto },
@@ -54,13 +46,14 @@ export class TranslateController {
     );
   }
 
-  @MessagePattern('translate.updateTranslatedPropert')
+  @MessagePattern('translate.updateTranslatedProperty')
   async updateTranslatedProperty(@Payload() data: { property; propertyDto }) {
     return await this.translateService.updateTranslatedProperty(
       data.property,
       data.propertyDto,
     );
   }
+
   @MessagePattern('translate.createTranslatedReport')
   async createTranslatedReport(@Payload() data: { report; reportDto }) {
     return await this.translateService.createTranslatedReport(
@@ -68,11 +61,9 @@ export class TranslateController {
       data.reportDto,
     );
   }
+
   @MessagePattern('translate.translate')
   async translate(@Payload() data: { language; message }) {
-    return await this.translateService.translate(
-      data.language,
-      data.message,
-    );
+    return await this.translateService.translate(data.language, data.message);
   }
 }

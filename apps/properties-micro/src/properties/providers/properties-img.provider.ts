@@ -1,24 +1,11 @@
-import {
-  BadRequestException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { join } from 'node:path';
-import { unlinkSync } from 'node:fs';
-import * as process from 'node:process';
 import { Property } from '../entities/property.entity';
 import { PropertiesGetProvider } from './properties-get.provider';
 
 import * as sharp from 'sharp';
-import * as jpeg from 'jpeg-js';
-import * as fs from 'node:fs';
-import * as fileType from 'file-type';
 import { UserType } from '@malaz/contracts/utils/enums';
-import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class PropertiesImgProvider {
@@ -80,85 +67,30 @@ export class PropertiesImgProvider {
     return new Uint8ClampedArray(data.buffer);
   }
 
-  /**
-   *  Remove Profile Image
-   * @param id
-   * @param userId
-   * @param file
-   */
-
-  async setSingleImg(id: number, userId: number, file: Express.Multer.File) {
-    const pro = await this.propertiesGetProvider.getProByUser(
+  async setSingleImg(id: number, userId: number, filename: string) {
+    const pro = (await this.propertiesGetProvider.getProByUser(
       id,
       userId,
       UserType.Owner,
-    );
-    if (!pro) {
-      throw new RpcException({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: 'Empty',
-      });
-    }
-    try {
-      // قراءة الملف من القرص
-      const buffer = fs.readFileSync(file.path);
-      const elaBuffer = await this.analyzeImage(buffer);
-      const elaImageBase64 = elaBuffer.toString('base64');
-      console.log({ elaImage: elaBuffer.toString('base64') });
+    ))!;
 
-      if (pro.propertyImage) {
-        try {
-          unlinkSync(
-            join(process.cwd(), `./images/properties/${pro.propertyImage}`),
-          ); //file path
-        } catch (err) {
-          console.log(err);
-        }
-      }
-      pro.propertyImage = file.filename;
-      await this.propertyRepository.save(pro);
-      //   return { message: `File uploaded successfully :  ${file.filename}` };
-      return {
-        message: 'File uploaded successfully',
-        elaImage: `data:image/png;base64,${elaBuffer.toString('base64')}`,
-        filename: file.filename,
-      };
-    } catch (error) {
-      console.log(error);
-    }
+    pro.propertyImage = filename;
+    await this.propertyRepository.save(pro);
+    //   return { message: `File uploaded successfully :  ${file.filename}` };
+    return filename;
   }
 
   async setMultiImg(id: number, userId: number, filenames: string[]) {
-    const pro = await this.propertiesGetProvider.getProByUser(
+    const pro = (await this.propertiesGetProvider.getProByUser(
       id,
       userId,
       UserType.Owner,
-    );
-    if (!pro) {
-      throw new RpcException({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: 'Empty',
-      });
-    }
-    //بقي الحذف لسا
-    const length = pro.propertyImages?.length + filenames.length;
-    if (length > 8) {
-      console.log('delete');
-      const sub = length - 8;
-      const forDelete = pro.propertyImages.splice(0, sub); //حذف + عرفت الاسماء
-      for (const photo of forDelete) {
-        unlinkSync(join(process.cwd(), `./images/properties/${photo}`)); //file path
-      }
-    }
-
-    pro.propertyImages = pro.propertyImages
-      ? pro.propertyImages.concat(filenames)
-      : filenames.concat(); //concat
+    ))!;
 
     await this.propertyRepository.save({
       ...pro,
-      firstImage: pro.propertyImages?.[0],
-      propertyImages: pro.propertyImages,
+      firstImage: filenames?.[0],
+      propertyImages: filenames,
     });
     return {
       message: `File uploaded successfully :  ${filenames}`,
@@ -167,24 +99,9 @@ export class PropertiesImgProvider {
 
   //حذف اي صورة من العقار
   async removeAnyImg(id: number, userId: number, imageName: string) {
-    const pro = await this.propertiesGetProvider.getProByUser(
-      id,
-      userId,
-      UserType.Owner,
-    );
-    if (!pro) {
-      throw new RpcException({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: 'Empty',
-      });
-    }
-    if (!pro.propertyImages.includes(imageName)) {
-      throw new BadRequestException('User does not have image');
-    }
-    const imagePath = join(process.cwd(), `./images/properties/${imageName}`);
-    unlinkSync(imagePath); //delete
-    pro.propertyImage = null;
-    return this.propertyRepository.save(pro);
+    return this.propertyRepository.update(id, {
+      propertyImage: null,
+    });
   }
 
   async setMultiPanorama(
@@ -198,23 +115,6 @@ export class PropertiesImgProvider {
       userId,
       UserType.Owner,
     );
-    if (!pro) {
-      throw new RpcException({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: 'Empty',
-      });
-    }
-    //مقارنة المفاتيح المتشابهة لحذف القيم
-    const panoramaNamesParse = JSON.parse((pro.panoramaImages as any) || {});
-    const forDelete: string[] = panoramaNames.reduce((acc: string[], name) => {
-      if (panoramaNamesParse.hasOwnProperty(name)) {
-        acc.push(panoramaNamesParse[name]);
-      }
-      return acc;
-    }, []);
-    for (const filename of forDelete) {
-      unlinkSync(join(process.cwd(), `./images/properties/${filename}`));
-    }
 
     //تهيئة ال record
     const panoramaImages: Record<string, string> = panoramaNames.reduce(

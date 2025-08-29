@@ -23,7 +23,7 @@ import { VotesService } from '../../votes/votes.service';
 import { createHash } from 'crypto';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom, lastValueFrom, retry, timeout } from 'rxjs';
-import { GeoEnum, Language, UserType } from '@malaz/contracts/utils/enums';
+import { GeoEnum, UserType } from '@malaz/contracts/utils/enums';
 import { GeoProDto } from '@malaz/contracts/dtos/properties/properties/geo-pro.dto';
 import { NearProDto } from '@malaz/contracts/dtos/properties/properties/near-pro.dto';
 import { FilterPropertyDto } from '@malaz/contracts/dtos/properties/properties/filter-property.dto';
@@ -53,7 +53,7 @@ export class PropertiesGetProvider {
     if (!property) {
       throw new RpcException({
         statusCode: HttpStatus.NOT_FOUND,
-        message: 'Empty',
+        message: 'Property not found',
       });
     }
     const user = await lastValueFrom(
@@ -63,7 +63,7 @@ export class PropertiesGetProvider {
     );
     // this.getTranslatedProperty(property, user.language);
     property = await lastValueFrom(
-      await this.translateClient.send('translate.getTranslatedProperty', {
+      this.translateClient.send('translate.getTranslatedProperty', {
         property: property,
         language: user.language,
       }),
@@ -455,6 +455,7 @@ export class PropertiesGetProvider {
       select: { owner: { id: true }, agency: { id: true } },
     });
   }
+
   defaultLanguage(property: Property) {
     property['description'] = property.multi_description.ar;
     property['title'] = property.multi_title.area;

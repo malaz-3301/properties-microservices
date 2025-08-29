@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ClassSerializerInterceptor,
   forwardRef,
   Global,
@@ -9,9 +8,6 @@ import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import e, { Express } from 'express';
 import { HttpModule } from '@nestjs/axios';
 import { UsersOtpProvider } from './providers/users-otp.provider';
 import { UsersGetProvider } from './providers/users-get.provider';
@@ -52,33 +48,6 @@ import { UsersAgController } from './controllers/users-ag.controller';
     forwardRef(() => AuditModule),
     GeoQueRpcModule, // طلبته ضمن الـ provider
     SmsQueRpcModule, // طلبته ضمن الـ provider
-    MulterModule.register({
-      storage: diskStorage({
-        destination: './images/users',
-        filename(
-          req: e.Request,
-          file: Express.Multer.File,
-          callback: (error: Error | null, filename: string) => void,
-        ) {
-          const prefix = `${Date.now()}-${Math.round(Math.random() * 10000)}`;
-          const filename = `${prefix}-${file.originalname}`.replace(
-            /[\s,]/g,
-            '',
-          );
-          callback(null, filename);
-        },
-      }),
-      fileFilter(req, file, callback) {
-        if (file.mimetype.startsWith('image')) {
-          callback(null, true);
-        } else {
-          callback(new BadRequestException('Unsupported Media Type'), false);
-        }
-
-        //لا تنسى المعالجة
-      },
-      limits: { fileSize: 1024 * 1024 * 2 },
-    }),
   ],
   controllers: [UsersController, UsersAdController, UsersAgController],
   providers: [

@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { UsersService } from '../users.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { RegisterUserDto } from '@malaz/contracts/dtos/users/users/register-user.dto';
 import { UpdateUserDto } from '@malaz/contracts/dtos/users/users/update-user.dto';
 import { FilterUserDto } from '@malaz/contracts/dtos/users/users/filter-user.dto';
@@ -45,14 +45,14 @@ export class UsersController {
     return this.usersService.deleteMe(data.userId, data.password);
   }
 
-  @MessagePattern('users.set_profile_image')
+  @MessagePattern('users.setProfileImage')
   uploadProfileImage(@Payload() data: { userId: number; filename: string }) {
     return this.usersService.setProfileImage(data.userId, data.filename);
   }
 
-  @MessagePattern('users.remove_profile_image')
-  removeProfileImage(@Payload() userId: number) {
-    return this.usersService.removeProfileImage(userId);
+  @EventPattern('users.removeProfileImage')
+  removeProfileImage(@Payload() Payload: { userId: number }) {
+    return this.usersService.removeProfileImage(Payload.userId);
   }
 
   @MessagePattern('users.set_plan')

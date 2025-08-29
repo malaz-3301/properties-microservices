@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
 @Injectable()
 export class TranslateService {
   constructor(private readonly configService: ConfigService) {}
+
   async createAndUpdatePlan(plan, PlanDto) {
     if (PlanDto.description) {
       plan.multi_description = { ar: PlanDto.description };
@@ -15,8 +17,10 @@ export class TranslateService {
         PlanDto.description,
       );
     }
+
     return plan;
   }
+
   getTranslatedPlans(plans, language) {
     return plans.map(function (plan) {
       if (language == 'ar') {
@@ -29,6 +33,7 @@ export class TranslateService {
       return plan;
     });
   }
+
   async createTranslatedProperty(property, createPropertyDto) {
     property.multi_description = { ar: createPropertyDto.description };
     console.log(createPropertyDto.description);
@@ -51,6 +56,7 @@ export class TranslateService {
     );
     return property;
   }
+
   getTranslatedProperty(property, language) {
     if (language == 'ar') {
       if (property.multi_description)
@@ -67,6 +73,7 @@ export class TranslateService {
     }
     return property;
   }
+
   getTranslatedProperties(properteis, language) {
     return properteis.map(function (property) {
       if (language == 'ar') {
@@ -85,6 +92,7 @@ export class TranslateService {
       return property;
     });
   }
+
   async updateTranslatedProperty(property, updatePropertyDto) {
     if (updatePropertyDto.description) {
       property.multi_description = { ar: updatePropertyDto.description };
@@ -110,6 +118,7 @@ export class TranslateService {
     }
     return property;
   }
+
   getTranslatedReport(report, language) {
     if (language == 'ar') {
       report['description'] = report.mult_description['ar'];
@@ -120,6 +129,7 @@ export class TranslateService {
     }
     return report;
   }
+
   async createTranslatedReport(report, createReportDto) {
     report.mult_description = { ar: createReportDto.description };
     report.mult_description['en'] = await this.translate(
@@ -132,6 +142,7 @@ export class TranslateService {
     );
     return report;
   }
+
   async translate(targetLang, text) {
     const Url = this.configService.get<string>('TRANSLATE');
     const sourceLang = 'ar';

@@ -2,7 +2,6 @@ import { Controller } from '@nestjs/common';
 import { PropertiesService } from '../properties.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { FilterPropertyDto } from '@malaz/contracts/dtos/properties/properties/filter-property.dto';
-import { JwtPayloadType } from '@malaz/contracts/utils/constants';
 import { PropertyStatus } from '@malaz/contracts/utils/enums';
 import { UpdateProAdminDto } from '@malaz/contracts/dtos/properties/properties/update-pro-admin.dto';
 
@@ -44,4 +43,25 @@ export class PropertiesAdController {
   async deleteAdminPro(@Payload() payload: { id: number }) {
     return this.propertiesService.deleteProById(+payload.id);
   }
+
+  /*
+
+  // قبول عقار (admin) — كانت معلّقة في الكود الأصلي
+  // payload المتوقع: { proId: number, acceptProAdminDto: AcceptProAdminDto }
+  @MessagePattern('properties.admin.accept')
+  async acceptProById(
+    @Payload() payload: { proId: number; acceptProAdminDto: any }, // AcceptProAdminDto
+  ) {
+    return this.propertiesService.acceptPro(payload.proId, payload.acceptProAdminDto);
+  }
+
+  // رفض عقار (admin) — كانت معلّقة في الكود الأصلي
+  // payload المتوقع: { id: number, rejectProAdminDto: RejectProAdminDto }
+  @MessagePattern('properties.admin.reject')
+  async rejectProById(
+    @Payload() payload: { id: number; rejectProAdminDto: any }, // RejectProAdminDto
+  ) {
+    return this.propertiesService.rejectPro(payload.id, payload.rejectProAdminDto);
+  }
+  */
 }
