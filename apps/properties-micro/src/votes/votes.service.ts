@@ -47,27 +47,31 @@ export class VotesService {
 
     if (vote) {
       //Remove
-      console.log('oooooooooooooo');
+
       if (vote.value === value) {
+        console.log('same');
         //موجود وحط نفس القيمة (شاله)
         await this.changeAllVotes(proId, -value, agencyId);
-
-        return this.voteRepository.delete(vote.id);
+        await this.voteRepository.delete(vote.id);
+        return { voteScore: property.voteScore - value };
       } else {
+        console.log('not same');
         //Update
-        await this.changeAllVotes(proId, -2 * value, agencyId);
-        return this.voteRepository.update(vote.id, { value: value });
+        await this.changeAllVotes(proId, 2 * value, agencyId);
+        await this.voteRepository.update(vote.id, { value: value });
+        return { voteScore: property.voteScore + 2 * value };
       }
     }
     //حالة Create
     else {
       await this.changeAllVotes(proId, value, agencyId);
       console.log('iiiiiiiiiiiiiii');
-      return await this.voteRepository.save({
+      await this.voteRepository.save({
         property: { id: proId },
         user: { id: userId },
         value: value,
       });
+      return { voteScore: property.voteScore + value };
     }
   }
 

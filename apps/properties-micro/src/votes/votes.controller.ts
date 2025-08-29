@@ -1,8 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { VotesService } from './votes.service';
-import { Payload } from '@nestjs/microservices';
-import { JwtPayloadType } from '@malaz/contracts/utils/constants';
-import { MessagePattern } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('votes')
 export class VotesController {
@@ -11,7 +9,12 @@ export class VotesController {
   // تغيير حالة التصويت لمادة معينة
   @MessagePattern('votes.changeStatus')
   async create(
-    @Payload() payload: { proId: number; value: number; userId: number },
+    @Payload()
+    payload: {
+      proId: number;
+      value: number;
+      userId: number;
+    },
   ) {
     return this.votesService.changeVoteStatus(
       payload.proId,

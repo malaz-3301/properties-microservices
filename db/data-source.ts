@@ -51,7 +51,7 @@ export const dataSourceOptions: DataSourceOptions = {
     PriorityRatio,
     Banned,
     Honeypot,
-  ],
+  ], //17 entities
   migrations: ['dist/db/migrations/*.js'],
 
   // Syria Time Zone -configuration

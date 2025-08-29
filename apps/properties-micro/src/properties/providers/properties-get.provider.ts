@@ -127,9 +127,10 @@ export class PropertiesGetProvider {
   async findById_ACT(proId: number, userId: number) {
     let property = await this.propertyRepository.findOne({
       where: { id: proId },
-      relations: { agency: true },
+      relations: { agency: true, votes: true },
       select: {
         agency: { id: true, username: true },
+        votes: { value: true },
       },
     });
 
