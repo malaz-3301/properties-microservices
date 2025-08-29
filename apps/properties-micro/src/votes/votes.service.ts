@@ -13,6 +13,7 @@ import { Vote } from './entities/vote.entity';
 import { PropertiesVoSuViProvider } from '../properties/providers/properties-vo-su-vi.provider';
 import { VotesGetProvider } from './providers/votes-get.provider';
 import { ClientProxy } from '@nestjs/microservices';
+import { PriorityRatio } from '../properties/entities/priority-ratio.entity';
 
 //forwardRef(() كسر دائرة الاعتماد
 @Injectable()
@@ -21,6 +22,8 @@ export class VotesService {
     @InjectRepository(Vote) private voteRepository: Repository<Vote>,
     @InjectRepository(Property)
     private propertyRepository: Repository<Property>,
+    @InjectRepository(PriorityRatio)
+    private priorityRatioRepository: Repository<PriorityRatio>,
     @Inject(forwardRef(() => PropertiesGetProvider))
     private readonly propertiesGetProvider: PropertiesGetProvider,
     private readonly propertiesVoViProvider: PropertiesVoSuViProvider,
@@ -44,9 +47,11 @@ export class VotesService {
 
     if (vote) {
       //Remove
+      console.log('oooooooooooooo');
       if (vote.value === value) {
         //موجود وحط نفس القيمة (شاله)
         await this.changeAllVotes(proId, -value, agencyId);
+
         return this.voteRepository.delete(vote.id);
       } else {
         //Update
@@ -57,6 +62,7 @@ export class VotesService {
     //حالة Create
     else {
       await this.changeAllVotes(proId, value, agencyId);
+      console.log('iiiiiiiiiiiiiii');
       return await this.voteRepository.save({
         property: { id: proId },
         user: { id: userId },
@@ -72,7 +78,8 @@ export class VotesService {
       value: value,
     });
     await this.propertiesVoViProvider.changeVotesNum(proId, value); //property
-    return await this.changePrimacy(proId, value);
+
+    await this.changePrimacy(proId, value);
   }
 
   //نقاط الظهور %50
@@ -86,13 +93,17 @@ export class VotesService {
     console.log('newMax', newMax);
     //شيل القديمة وحط الجديدة
     const oldMax = property.priorityRatio.voteRatio;
+
     const oldPrimacy =
       property.priorityRatio.voteRatio +
       property.priorityRatio.suitabilityRatio; // حسبت ال old primacy مع انها موجودة ولكن قد تكون معدلة
 
     const primacy = oldPrimacy - oldMax + newMax;
-    return await this.propertyRepository.update(proId, {
-      priorityRatio: { voteRatio: newMax },
+
+    await this.priorityRatioRepository.update(proId, {
+      voteRatio: newMax,
+    });
+    await this.propertyRepository.update(proId, {
       primacy: primacy,
     });
   }

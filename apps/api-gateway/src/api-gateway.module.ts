@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ApiGatewayController } from './api-gateway.controller';
 import { AuthRpcModule } from '@malaz/contracts/modules/rpc/auth-rpc.module';
 import { ToUsersBannedController } from './to-users/to-banned/to-users-banned.controller';
@@ -36,6 +41,9 @@ import { ConfigSetModule } from '@malaz/contracts/modules/set/config-set.module'
 import { ToNotificationsController } from './to-notifications/to-notifications.controller';
 import { ContractsRpcModule } from '@malaz/contracts/modules/rpc/contracts-rpc.module';
 import { ToUsersContractsController } from './to-users/to-contracts/to-users-contracts.controller';
+import { HoneypotModule } from './honeypot/honeypot.module';
+import { HoneypotMiddleware } from '@malaz/contracts/utils/middlewares/honeypot.middleware';
+import { Honeypot } from './honeypot/entities/honeypot.entity';
 
 @Module({
   imports: [
@@ -59,9 +67,11 @@ import { ToUsersContractsController } from './to-users/to-contracts/to-users-con
       throttlers: rateLimiting,
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
+    TypeOrmModule.forFeature([Honeypot]),
 
     PropertiesHttpMediaModule,
     UsersHttpMediaModule,
+    HoneypotModule,
   ],
   controllers: [
     ApiGatewayController,
@@ -86,4 +96,10 @@ import { ToUsersContractsController } from './to-users/to-contracts/to-users-con
   ],
   providers: [ToUsersAuditService],
 })
-export class ApiGatewayModule {}
+export class ApiGatewayModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(HoneypotMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

@@ -23,7 +23,11 @@ import { VotesService } from '../../votes/votes.service';
 import { createHash } from 'crypto';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom, lastValueFrom, retry, timeout } from 'rxjs';
-import { GeoEnum, UserType } from '@malaz/contracts/utils/enums';
+import {
+  GeoEnum,
+  PropertyStatus,
+  UserType,
+} from '@malaz/contracts/utils/enums';
 import { GeoProDto } from '@malaz/contracts/dtos/properties/properties/geo-pro.dto';
 import { NearProDto } from '@malaz/contracts/dtos/properties/properties/near-pro.dto';
 import { FilterPropertyDto } from '@malaz/contracts/dtos/properties/properties/filter-property.dto';
@@ -71,6 +75,12 @@ export class PropertiesGetProvider {
     return property;
   }
 
+  getProsByAgency(agencyId?: number) {
+    let query: FilterPropertyDto = {};
+    query.status = PropertyStatus.ACCEPTED;
+    return this.getAll(query, undefined, undefined, agencyId);
+  }
+
   async getUserIdByProId(proId: number) {
     const property = await this.propertyRepository.findOne({
       where: { id: proId },
@@ -89,9 +99,10 @@ export class PropertiesGetProvider {
   async findById(proId: number) {
     const property = await this.propertyRepository.findOne({
       where: { id: proId },
-      relations: { agency: true },
+      relations: { agency: true, priorityRatio: true },
       select: {
         agency: { id: true, username: true },
+        priorityRatio: { voteRatio: true },
       },
     });
 
@@ -126,7 +137,7 @@ export class PropertiesGetProvider {
     if (!property) {
       throw new RpcException({
         statusCode: HttpStatus.NOT_FOUND,
-        message: 'Empty',
+        message: 'Property not found',
       });
     }
     const user = await lastValueFrom(
@@ -137,7 +148,7 @@ export class PropertiesGetProvider {
     // this.getTranslatedProperty(property, user.language);
 
     property = await lastValueFrom(
-      await this.translateClient.send('translate.getTranslatedProperty', {
+      this.translateClient.send('translate.getTranslatedProperty', {
         property: property,
         language: user.language,
       }),
@@ -253,7 +264,7 @@ export class PropertiesGetProvider {
     );
     // this.getTranslatedProperty(properties[i], user.language);
     properties = await lastValueFrom(
-      await this.translateClient.send('translate.getTranslatedProperties', {
+      this.translateClient.send('translate.getTranslatedProperties', {
         property: properties,
         language: user.language,
       }),
@@ -285,7 +296,7 @@ export class PropertiesGetProvider {
         .pipe(retry(2), timeout(5000)),
     );
     result = await lastValueFrom(
-      await this.translateClient.send('translate.getTranslatedProperties', {
+      this.translateClient.send('translate.getTranslatedProperties', {
         property: result,
         language: user.language,
       }),
@@ -364,9 +375,9 @@ export class PropertiesGetProvider {
     if (priceDir != null) {
       order.price = priceDir;
     }
-    console.log(pageNum);
-    console.log(numPerPage);
-    console.log(numPerPage * (pageNum - 1));
+    /*    console.log(pageNum);
+        console.log(numPerPage);
+        console.log(numPerPage * (pageNum - 1));*/
 
     let properties: Property[] = await this.propertyRepository.find({
       where,

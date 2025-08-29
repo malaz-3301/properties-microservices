@@ -46,11 +46,11 @@ export class FilterPropertyDto {
 
   @IsOptional()
   @IsEnum(PropertyType)
-  propertyType: PropertyType;
+  propertyType?: PropertyType;
 
   @IsOptional()
   @IsEnum(PropertyType)
-  heatingType: HeatingType;
+  heatingType?: HeatingType;
 
   @IsOptional()
   @IsNumber()
@@ -63,11 +63,11 @@ export class FilterPropertyDto {
   //تابع Between بياخد string حصراً
   @IsOptional()
   @IsString()
-  minArea: string;
+  minArea?: string;
 
   @IsOptional()
   @IsString()
-  maxArea: string;
+  maxArea?: string;
 
   @IsOptional()
   @Transform(({ value }) => {
@@ -85,7 +85,7 @@ export class FilterPropertyDto {
     return undefined;
   })
   @IsBoolean()
-  hasGarage: boolean;
+  hasGarage?: boolean;
 
   @IsOptional()
   @Transform(({ value }) => {
@@ -94,14 +94,14 @@ export class FilterPropertyDto {
     return undefined;
   })
   @IsBoolean()
-  isFloor: boolean;
+  isFloor?: boolean;
 
   @IsOptional()
   @Min(0) // رقم الصفحة علاقل واحد
   @Type(() => Number)
-  pageNum: number;
+  pageNum?: number;
 
   @IsOptional()
   @Type(() => Number)
-  numPerPage: number;
+  numPerPage?: number;
 }

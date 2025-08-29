@@ -2,17 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Statistics } from '../entities/statistics.entity';
+import { AgencyInfo } from '../entities/agency-info.entity';
 
 //increment depends on value
 @Injectable()
 export class AgenciesVoViProvider {
   constructor(
-    @InjectRepository(Statistics)
-    private readonly statsRepository: Repository<Statistics>,
+    @InjectRepository(AgencyInfo)
+    private readonly agencyInfoRepository: Repository<AgencyInfo>,
   ) {}
 
   async changeVotesNum(ownerId: number, value: number) {
-    await this.statsRepository.increment(
+    await this.agencyInfoRepository.increment(
       { user_id: ownerId },
       'agencyVotes',
       value,
@@ -27,13 +28,13 @@ export class AgenciesVoViProvider {
   ) {
     const repository = manager
       ? manager.getRepository(Statistics)
-      : this.statsRepository;
+      : this.agencyInfoRepository;
 
     await repository.increment({ user_id: ownerId }, 'propertyCount', value);
   }
 
   async incrementTotalViews(ownerId: number) {
-    await this.statsRepository.increment(
+    await this.agencyInfoRepository.increment(
       { user_id: ownerId },
       'agencyViews',
       1,
