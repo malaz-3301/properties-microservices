@@ -1,9 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Property } from '../entities/property.entity';
 import { DataSource } from 'typeorm';
 import { PropertiesVoSuViProvider } from './properties-vo-su-vi.provider';
 
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import * as console from 'node:console';
 import { CreatePropertyDto } from '@malaz/contracts/dtos/properties/properties/create-property.dto';
 import { PropertyStatus, UserType } from '@malaz/contracts/utils/enums';
@@ -30,15 +30,21 @@ export class PropertiesCreateProvider {
         .send('users.findById', { id: userId })
         .pipe(retry(2), timeout(5000)),
     );
-    //اذا مكتب لازم يشترك
+    //اذا مكتب لازم يشتركuser.userType
     if (user.userType === UserType.AGENCY) {
       //عدد كم عقار له واختار المحدودية
       const count = await this.propertiesGetProvider.getProsCount(userId);
       if (user.plan?.id === 1) {
-        throw new UnauthorizedException('Subscripe ! اشترك في خطط المكاتب');
+        throw new RpcException({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'Subscripe ! اشترك في خطط المكاتب',
+        });
       }
       if (count >= user.plan?.limit!) {
-        throw new UnauthorizedException('limit ! وصلت للحد الأقصى من العقارات');
+        throw new RpcException({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'limit ! وصلت للحد الأقصى من العقارات',
+        });
       }
     }
     console.log('planId : ' + user.plan?.id);

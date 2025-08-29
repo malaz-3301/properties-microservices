@@ -41,9 +41,10 @@ export class TranslateController {
   async createTranslatedProperty(
     @Payload() payload: { property; propertyDto },
   ) {
+    const { property, propertyDto } = payload;
     return await this.translateService.createTranslatedProperty(
-      payload.property,
-      payload.propertyDto,
+      property,
+      propertyDto,
     );
   }
 

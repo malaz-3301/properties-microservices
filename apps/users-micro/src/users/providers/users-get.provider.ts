@@ -43,7 +43,10 @@ export class UsersGetProvider {
 
     console.log(user.userType);
     if (user.userType === (UserType.ADMIN || UserType.SUPER_ADMIN)) {
-      throw new UnauthorizedException("You Can't its not user or agency");
+      throw new RpcException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: "You Can't its not user or agency",
+      });
     }
     return user;
   }

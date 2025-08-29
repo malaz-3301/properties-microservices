@@ -433,7 +433,6 @@ export class PropertiesGetProvider {
           language: user.language,
         }),
       );
-      console.log(properties);
     }
     if (!properties || properties.length === 0) {
       throw new NotFoundException('No estates found');
