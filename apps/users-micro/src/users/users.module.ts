@@ -30,10 +30,12 @@ import { Order } from '../../../commerce-micro/src/orders/entities/order.entity'
 import { UsersController } from './controllers/users.controller';
 import { UsersAdController } from './controllers/users-ad.controller';
 import { UsersAgController } from './controllers/users-ag.controller';
+import { PropertiesRpcModule } from '@malaz/contracts/modules/rpc/properties-rpc.module';
 
 @Global()
 @Module({
   imports: [
+    PropertiesRpcModule,
     TypeOrmModule.forRoot(dataSourceOptions),
     TypeOrmModule.forFeature([
       User,

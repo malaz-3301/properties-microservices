@@ -14,6 +14,7 @@ import { UserSmsModule } from './user-sms/user-sms.module';
 import { SmsQueRpcModule } from '@malaz/contracts/modules/rpc/sms-que-rpc.module';
 import { AnalyticsModule } from '../../automation-analytics-micro/src/analytics/analytics.module';
 import { FromRpcToUsersModule } from './a-from-rpc-to-users/from-rpc-to-users.module';
+import { PropertiesRpcModule } from '@malaz/contracts/modules/rpc/properties-rpc.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { FromRpcToUsersModule } from './a-from-rpc-to-users/from-rpc-to-users.mo
     UserSmsModule,
     AnalyticsModule,
     FromRpcToUsersModule,
+    PropertiesRpcModule,
   ],
   controllers: [UsersMicroController],
   providers: [UsersMicroService],

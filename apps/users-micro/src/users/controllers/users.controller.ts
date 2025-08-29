@@ -4,6 +4,8 @@ import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { RegisterUserDto } from '@malaz/contracts/dtos/users/users/register-user.dto';
 import { UpdateUserDto } from '@malaz/contracts/dtos/users/users/update-user.dto';
 import { FilterUserDto } from '@malaz/contracts/dtos/users/users/filter-user.dto';
+import { GeoProDto } from '@malaz/contracts/dtos/properties/properties/geo-pro.dto';
+import { NearProDto } from '@malaz/contracts/dtos/properties/properties/near-pro.dto';
 
 @Controller('users')
 export class UsersController {
@@ -68,6 +70,21 @@ export class UsersController {
   @MessagePattern('users.getOneAgency')
   getOneAgency(@Payload() payload: { agencyId: number }) {
     return this.usersService.getOneAgency(payload.agencyId);
+  }
+
+  @MessagePattern('users.getProByGeo')
+  async getUserByGeo(
+    @Payload() payload: { geoProDto: GeoProDto; userId: number },
+  ) {
+    return this.usersService.getUserByGeo(payload.geoProDto, payload.userId);
+  }
+
+  // عقارات قريبة مني
+  @MessagePattern('users.getNearMe')
+  async getUserNearMe(
+    @Payload() payload: { nearProDto: NearProDto; userId: number },
+  ) {
+    return this.usersService.getUserNearMe(payload.nearProDto, payload.userId);
   }
 
   @MessagePattern('users.getUserProsById')

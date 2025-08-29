@@ -7,16 +7,18 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
-import { FindOptionsWhere, Like, Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere, Like, Repository } from 'typeorm';
 
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { AgencyInfo } from '../entities/agency-info.entity';
 import { createHash } from 'crypto';
 import { ConfigService } from '@nestjs/config';
-import { Language, UserType } from '@malaz/contracts/utils/enums';
+import { GeoEnum, Language, UserType } from '@malaz/contracts/utils/enums';
 import { FilterUserDto } from '@malaz/contracts/dtos/users/users/filter-user.dto';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
+import { GeoProDto } from '@malaz/contracts/dtos/properties/properties/geo-pro.dto';
+import { NearProDto } from '@malaz/contracts/dtos/properties/properties/near-pro.dto';
 
 @Injectable()
 export class UsersGetProvider {
@@ -29,6 +31,10 @@ export class UsersGetProvider {
     private readonly configService: ConfigService,
     @Inject('PROPERTIES_SERVICE')
     private readonly propertiesClient: ClientProxy,
+    @Inject('GEO_SERVICE') private readonly geoClient: ClientProxy,
+    private dataSource: DataSource,
+    @Inject('TRANSLATE_SERVICE')
+    private readonly translateClient: ClientProxy,
   ) {}
 
   // لاعد تسجل otp
@@ -207,5 +213,104 @@ export class UsersGetProvider {
       throw new UnauthorizedException("You Can't its not user or agency");
     }
     return user;
+  }
+
+  async getUserByGeo(geoProDto: GeoProDto, userId: number) {
+    const level = geoProDto.geoLevel;
+    /*    const location =
+          (await this.geolocationService.reverse_geocoding(
+            geoProDto.lat,
+            geoProDto.lon,
+          )) || {};*/
+    console.log('helooooooooooo');
+    const location = await firstValueFrom(
+      this.geoClient.send('get_property.geo', {
+        lat: geoProDto.lat,
+        lon: geoProDto.lon,
+      }),
+    );
+
+    //نزيل بعدين طلاع
+    const GeoArray = Object.values(GeoEnum); //عملها مصفوفة
+    console.log(location);
+    const key = GeoArray.indexOf(level);
+    let apiGeoLevel;
+    let apiGeoValue;
+
+    if (location[level] != null && location[level] != 'unnamed road') {
+      apiGeoLevel = level;
+      apiGeoValue = location[`${GeoArray[key]}`];
+    } else {
+      let i = key - 1;
+      while (i >= 0) {
+        console.log('aaa');
+        if (
+          location[GeoArray[i]] != 'unnamed road' &&
+          location[GeoArray[i]] != null
+        ) {
+          apiGeoLevel = GeoArray[i];
+          apiGeoValue = location[GeoArray[i]];
+          console.log(
+            GeoArray[i] + ' : ' + i + ' ' + location[`${GeoArray[i]}`],
+          );
+          break;
+        }
+        i--;
+      }
+      console.log('break');
+      if (apiGeoValue == null) {
+        i = key + 2;
+
+        while (i <= 4) {
+          if (
+            location[GeoArray[i]] != 'unnamed road' &&
+            location[GeoArray[i]] != null
+          ) {
+            apiGeoLevel = GeoArray[i];
+            apiGeoValue = location[GeoArray[i]];
+            console.log(
+              GeoArray[i] + ' : ' + i + ' ' + location[`${GeoArray[i]}`],
+            );
+            break;
+          }
+          i++;
+        }
+      }
+    }
+    console.log('last_level is :' + apiGeoLevel + ' : ' + apiGeoValue);
+    let properties = await this.usersRepository.find({
+      where: { location: { [apiGeoLevel]: apiGeoValue } },
+    });
+    const users = await this.findById(userId);
+    // this.getTranslatedProperty(properties[i], user.language);
+    return users;
+  }
+
+  async getUserNearMe(nearProDto: NearProDto, userId: number) {
+    let result = await this.dataSource.query(
+      `
+          SELECT *,
+                 ST_Distance(
+                         "locationStringpoints",
+                         ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+                 ) AS distance
+          FROM users
+          WHERE ST_DWithin(
+                        "locationStringpoints",
+                        ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+                        $3
+                )
+          ORDER BY distance ASC;
+      `,
+      [nearProDto.lon, nearProDto.lat, nearProDto.distanceKm],
+    );
+    const user = await this.findById(userId);
+    result = await lastValueFrom(
+      this.translateClient.send('translate.getTranslatedProperties', {
+        property: result,
+        language: user.language,
+      }),
+    );
+    return result;
   }
 }

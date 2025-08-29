@@ -26,6 +26,8 @@ import { FilterUserDto } from '@malaz/contracts/dtos/users/users/filter-user.dto
 import { UpdateUserByAdminDto } from '@malaz/contracts/dtos/users/users/update-user-by-admin.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { catchError, retry, timeout } from 'rxjs';
+import { GeoProDto } from '@malaz/contracts/dtos/properties/properties/geo-pro.dto';
+import { NearProDto } from '@malaz/contracts/dtos/properties/properties/near-pro.dto';
 
 @Controller('users')
 export class ToUsersUsersController {
@@ -56,11 +58,33 @@ export class ToUsersUsersController {
       .pipe(retry(2), timeout(5000));
   }
 
+  @Get('geo')
+  @UseGuards(AuthGuard)
+  getUserByGeo(
+    @Query() geoProDto: GeoProDto,
+    @CurrentUser() user: JwtPayloadType,
+  ) {
+    return this.usersClient
+      .send('users.getProByGeo', { geoProDto, userId: user.id })
+      .pipe(retry(2), timeout(15000));
+  }
+
+  @Get('near')
+  @UseGuards(AuthGuard)
+  getUserNearMe(
+    @Query() nearProDto: NearProDto,
+    @CurrentUser() user: JwtPayloadType,
+  ) {
+    return this.usersClient
+      .send('users.getNearMe', { nearProDto, userId: user.id })
+      .pipe(retry(2), timeout(10000));
+  }
+
   @Get('resend/:id')
   otpReSend(@Param('id', ParseIntPipe) id: number) {
     return this.usersClient
       .send('users.otpReSend', { id })
-      .pipe(retry(2), timeout(5000));
+      .pipe(retry(2), timeout(10000));
   }
 
   @Get('timer/:id')

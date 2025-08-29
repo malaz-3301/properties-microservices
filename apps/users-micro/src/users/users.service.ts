@@ -16,6 +16,8 @@ import { RegisterUserDto } from '@malaz/contracts/dtos/users/users/register-user
 import { UpdateUserDto } from '@malaz/contracts/dtos/users/users/update-user.dto';
 import { UpdateUserByAdminDto } from '@malaz/contracts/dtos/users/users/update-user-by-admin.dto';
 import { FilterUserDto } from '@malaz/contracts/dtos/users/users/filter-user.dto';
+import { GeoProDto } from '@malaz/contracts/dtos/properties/properties/geo-pro.dto';
+import { NearProDto } from '@malaz/contracts/dtos/properties/properties/near-pro.dto';
 
 @Injectable()
 export class UsersService {
@@ -73,6 +75,14 @@ export class UsersService {
 
   async getUserProsById(id: number) {
     return this.usersGetProvider.getUserProsById(id);
+  }
+
+  async getUserByGeo(geoProDto: GeoProDto, userId: number) {
+    return this.usersGetProvider.getUserByGeo(geoProDto, userId);
+  }
+
+  async getUserNearMe(nearProDto: NearProDto, userId: number) {
+    return this.usersGetProvider.getUserNearMe(nearProDto, userId);
   }
 
   async getAllAgency(query: FilterUserDto) {
