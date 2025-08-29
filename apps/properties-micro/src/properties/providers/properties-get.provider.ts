@@ -412,7 +412,7 @@ export class PropertiesGetProvider {
           lat: true,
         },
 
-        agency: { username: true },
+        agency: { username: true, id: true },
       },
 
       order,

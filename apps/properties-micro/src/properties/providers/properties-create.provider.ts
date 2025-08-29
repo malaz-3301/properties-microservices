@@ -95,13 +95,15 @@ export class PropertiesCreateProvider {
           propertyDto: createPropertyDto,
         }),
       );
+      console.log('ttttttttttttttttttt');
+
       await manger.save(Property, newProperty);
-      console.log('ddddddddddddddddddddddddddddddd');
 
       await this.propertiesVoViProvider.computeSuitabilityRatio(
         newProperty,
         manger,
       );
+      console.log('ddddddddddddddddddddddddddddddd');
       this.usersClient.emit('analytics.chanePropertiesNum', {
         userId: agency.id,
         value: 1,

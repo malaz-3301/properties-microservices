@@ -54,6 +54,7 @@ export class TranslateService {
       'de',
       createPropertyDto.title,
     );
+    console.log('trrrans');
     return property;
   }
 

@@ -28,18 +28,20 @@ export class PropertiesVoSuViProvider {
     const repository = manager
       ? manager.getRepository(Property)
       : this.propertyRepository;
+    console.log('compute');
     const [minPricePro] = await repository.find({
       order: {
         price: 'ASC',
       },
-      select: { price: true },
+      select: { id: true, price: true },
       take: 1,
     });
+    console.log('computeeeeee');
     const [maxPricePro] = await repository.find({
       order: {
         price: 'DESC',
       },
-      select: { price: true },
+      select: { id: true, price: true },
       take: 1,
     });
     const minPrice = minPricePro?.price ?? 0;
